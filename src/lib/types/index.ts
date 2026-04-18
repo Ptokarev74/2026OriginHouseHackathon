@@ -141,3 +141,71 @@ export type AgentInputCase = {
   providers: Provider[];
   reviewedCase?: ParsedCase;
 };
+
+// ─── TinyFish integration types ───────────────────────────────────────────────
+
+export type WorkflowRunMode = "local" | "live" | "mock";
+
+/** Structured provider object extracted from a TinyFish-fetched page. */
+export type LiveProvider = {
+  provider_name: string;
+  specialty: string;
+  address: string;
+  phone: string;
+  insurance_acceptance: string; // raw text from the page
+  scheduling_url: string;
+  contact_url: string;
+  availability_hint: string;
+  price_hint: string;
+  source_url: string;
+  source: "live" | "mock";
+};
+
+export type TinyFishSearchResult = {
+  position: number;
+  site_name: string;
+  title: string;
+  snippet: string;
+  url: string;
+};
+
+export type TinyFishFetchResult = {
+  url: string;
+  final_url: string;
+  title: string;
+  description: string;
+  language: string;
+  text: string;
+};
+
+export type TinyFishAgentEventType = "STARTED" | "PROGRESS" | "COMPLETE" | "ERROR";
+
+export type TinyFishAgentEvent = {
+  type: TinyFishAgentEventType;
+  run_id: string;
+  purpose?: string;
+  status?: string;
+  result?: unknown;
+  error?: string;
+};
+
+export type ProviderDiscoveryResult = {
+  providers: LiveProvider[];
+  mode: WorkflowRunMode;
+  searchUrls: string[];
+  log: string[];
+};
+
+export type SecureCareStatus =
+  | "in_progress"
+  | "provider_found"
+  | "contact_requested"
+  | "needs_escalation";
+
+export type SecureCareResult = {
+  status: SecureCareStatus;
+  mode: WorkflowRunMode;
+  events: TinyFishAgentEvent[];
+  summary: string;
+  safeStopMessage: string;
+};

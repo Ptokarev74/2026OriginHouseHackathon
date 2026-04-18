@@ -1,24 +1,32 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { parseDocuments } from "@/lib/domain/parsing";
 import {
   runCoverageToCareAgent,
   workflowSteps,
   type WorkflowStepId,
 } from "@/lib/workflow/agent";
+import { LiveProviderCard } from "@/components/LiveProviderCard";
+import { TinyFishRunLog } from "@/components/TinyFishRunLog";
 import type {
   AgentRunResult,
   DocumentSourceKind,
+  LiveProvider,
   MedicareCoverageType,
   ParsedCase,
   PatientPreferences,
   Provider,
+  ProviderDiscoveryResult,
   RankedProvider,
   SampleCase,
+  SecureCareStatus,
   SourceDocument,
+  TinyFishAgentEvent,
   UrgencyLevel,
+  WorkflowRunMode,
 } from "@/lib/types";
+
 
 type WorkflowStatus = "idle" | "running" | "complete";
 type IntakeMode = "sample" | "upload";
@@ -1101,6 +1109,18 @@ export function CoverageToCareDashboard({
   const [activeStep, setActiveStep] = useState<WorkflowStepId>();
   const [result, setResult] = useState<AgentRunResult>();
 
+  // ── TinyFish state ────────────────────────────────────────────────────────
+  const [discoveryResult, setDiscoveryResult] = useState<ProviderDiscoveryResult>();
+  const [discoveryLoading, setDiscoveryLoading] = useState(false);
+  const [tinyfishRunMode, setTinyfishRunMode] = useState<WorkflowRunMode>("local");
+  const [agentEvents, setAgentEvents] = useState<TinyFishAgentEvent[]>([]);
+  const [agentStreaming, setAgentStreaming] = useState(false);
+  const [selectedLiveProvider, setSelectedLiveProvider] = useState<LiveProvider>();
+  const [secureCareStatus, setSecureCareStatus] = useState<SecureCareStatus>();
+  const [logPhase, setLogPhase] =
+    useState<"idle" | "discover" | "secure_care">("idle");
+
+
   const selectedCase = useMemo(
     () =>
       sampleCases.find((sampleCase) => sampleCase.id === selectedCaseId) ??
@@ -1256,6 +1276,12 @@ export function CoverageToCareDashboard({
 
     setResult(undefined);
     setStatus("running");
+    // Reset TinyFish state on new run
+    setDiscoveryResult(undefined);
+    setAgentEvents([]);
+    setSelectedLiveProvider(undefined);
+    setSecureCareStatus(undefined);
+    setLogPhase("idle");
 
     for (const step of workflowSteps) {
       setActiveStep(step.id);
@@ -1273,6 +1299,97 @@ export function CoverageToCareDashboard({
     setStatus("complete");
     setActiveStep(undefined);
   }
+
+  /** Calls the /api/tinyfish/discover route and updates state. */
+  const runProviderDiscovery = useCallback(async () => {
+    if (!reviewCase || discoveryLoading) return;
+    setDiscoveryLoading(true);
+    setDiscoveryResult(undefined);
+    setAgentEvents([]);
+    setSelectedLiveProvider(undefined);
+    setSecureCareStatus(undefined);
+    setLogPhase("discover");
+
+    try {
+      const response = await fetch("/api/tinyfish/discover", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          specialty: reviewCase.specialtyNeeded,
+          zip: reviewCase.locationZip !== "Unknown" ? reviewCase.locationZip : "78701",
+          insuranceType: reviewCase.insuranceType,
+        }),
+      });
+      const data = (await response.json()) as ProviderDiscoveryResult;
+      setDiscoveryResult(data);
+      setTinyfishRunMode(data.mode);
+    } catch (err) {
+      console.error("Discovery failed", err);
+    } finally {
+      setDiscoveryLoading(false);
+    }
+  }, [reviewCase, discoveryLoading]);
+
+  /** Calls /api/tinyfish/secure-care and streams SSE events into state. */
+  const runSecureCare = useCallback(
+    async (provider: LiveProvider) => {
+      if (agentStreaming) return;
+      setSelectedLiveProvider(provider);
+      setSecureCareStatus("in_progress");
+      setAgentEvents([]);
+      setAgentStreaming(true);
+      setLogPhase("secure_care");
+
+      try {
+        const response = await fetch("/api/tinyfish/secure-care", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contactUrl: provider.contact_url,
+            providerName: provider.provider_name,
+            specialty: provider.specialty,
+            insuranceType: reviewCase?.insuranceType ?? "Medicaid",
+          }),
+        });
+
+        if (!response.body) throw new Error("No stream body");
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split("\n");
+          buffer = lines.pop() ?? "";
+
+          for (const line of lines) {
+            const trimmed = line.trim();
+            if (!trimmed.startsWith("data:")) continue;
+            const jsonStr = trimmed.slice(5).trim();
+            try {
+              const event = JSON.parse(jsonStr) as TinyFishAgentEvent;
+              setAgentEvents((prev) => [...prev, event]);
+              if (event.type === "COMPLETE") {
+                setSecureCareStatus("contact_requested");
+              }
+            } catch {
+              // partial JSON — ignore
+            }
+          }
+        }
+      } catch (err) {
+        console.error("Secure care agent failed", err);
+        setSecureCareStatus("needs_escalation");
+      } finally {
+        setAgentStreaming(false);
+      }
+    },
+    [agentStreaming, reviewCase],
+  );
+
 
   if (!selectedCase) {
     return (
@@ -1349,14 +1466,14 @@ export function CoverageToCareDashboard({
               value={String(providers.length)}
             />
             <StatCard
-              helper="Mock subscription only"
-              label="Subscriber"
-              value={isSubscriber ? "Active" : "Demo"}
+              helper={discoveryResult ? `${discoveryResult.providers.length} found • ${discoveryResult.mode}` : "Not yet run"}
+              label="Live discovery"
+              value={discoveryResult ? String(discoveryResult.providers.length) : "—"}
             />
             <StatCard
               helper={status === "complete" ? "Summary ready" : "Awaiting review"}
               label="Status"
-              value={status === "complete" ? "Ready" : titleStatus(status)}
+              value={secureCareStatus ?? (status === "complete" ? "Ready" : titleStatus(status))}
             />
           </div>
 
@@ -1462,6 +1579,154 @@ export function CoverageToCareDashboard({
                   >
                     <ProviderTable providers={result.rankedProviders} />
                   </Section>
+
+                  {/* ── TinyFish Live Provider Discovery ── */}
+                  <section
+                    className="no-print rounded-lg border border-slate-200 bg-slate-950 p-5 shadow-sm"
+                    style={{ color: "#e2e8f0" }}
+                  >
+                    <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                      <div>
+                        <div
+                          style={{
+                            fontSize: "11px",
+                            fontWeight: 700,
+                            textTransform: "uppercase",
+                            letterSpacing: "0.07em",
+                            color: "#63b3ed",
+                            marginBottom: "4px",
+                          }}
+                        >
+                          TinyFish Live Web Search
+                        </div>
+                        <h2
+                          style={{
+                            fontSize: "20px",
+                            fontWeight: 700,
+                            color: "#e2e8f0",
+                          }}
+                        >
+                          Live Provider Discovery
+                        </h2>
+                        <p
+                          style={{
+                            fontSize: "13px",
+                            color: "#718096",
+                            marginTop: "4px",
+                          }}
+                        >
+                          TinyFish searches the live web for providers accepting{" "}
+                          {reviewCase?.insuranceType ?? "your insurance"} near{" "}
+                          {reviewCase?.locationZip ?? "your ZIP code"}.
+                        </p>
+                      </div>
+                      <button
+                        disabled={discoveryLoading}
+                        onClick={() => void runProviderDiscovery()}
+                        style={{
+                          background: discoveryLoading
+                            ? "#2d3748"
+                            : "linear-gradient(135deg, #2b6cb0, #4299e1)",
+                          color: "#fff",
+                          border: "none",
+                          borderRadius: "10px",
+                          padding: "10px 20px",
+                          fontWeight: 700,
+                          fontSize: "14px",
+                          cursor: discoveryLoading ? "not-allowed" : "pointer",
+                          transition: "all 0.2s ease",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
+                        }}
+                        type="button"
+                      >
+                        {discoveryLoading ? "🔍 Searching…" : "🌐 Run Live Discovery"}
+                      </button>
+                    </div>
+
+                    {/* TinyFish run log for discovery phase */}
+                    <TinyFishRunLog
+                      events={logPhase === "secure_care" ? agentEvents : []}
+                      isStreaming={agentStreaming}
+                      log={discoveryResult?.log ?? []}
+                      mode={tinyfishRunMode}
+                      phase={logPhase}
+                    />
+
+                    {/* Live provider cards */}
+                    {discoveryResult?.providers && discoveryResult.providers.length > 0 && (
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: "14px",
+                          marginTop: logPhase !== "idle" ? "20px" : "0",
+                        }}
+                      >
+                        <div
+                          style={{
+                            fontSize: "13px",
+                            color: "#a0aec0",
+                            borderTop: "1px solid rgba(255,255,255,0.08)",
+                            paddingTop: "16px",
+                          }}
+                        >
+                          {discoveryResult.providers.length} live provider
+                          {discoveryResult.providers.length !== 1 ? "s" : ""} found. Click{" "}
+                          <strong style={{ color: "#68d391" }}>Secure Care</strong> to run
+                          the TinyFish Agent on the provider&apos;s contact page.
+                        </div>
+                        {discoveryResult.providers.map((lp, i) => (
+                          <LiveProviderCard
+                            isSelected={selectedLiveProvider?.source_url === lp.source_url}
+                            key={lp.source_url}
+                            onSelectSecureCare={(p) => void runSecureCare(p)}
+                            provider={lp}
+                            rank={i + 1}
+                          />
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Secure Care outcome banner */}
+                    {secureCareStatus && secureCareStatus !== "in_progress" && (
+                      <div
+                        style={{
+                          marginTop: "20px",
+                          padding: "16px",
+                          borderRadius: "12px",
+                          background:
+                            secureCareStatus === "contact_requested"
+                              ? "rgba(72, 187, 120, 0.12)"
+                              : "rgba(252, 129, 129, 0.1)",
+                          border:
+                            secureCareStatus === "contact_requested"
+                              ? "1px solid rgba(72, 187, 120, 0.4)"
+                              : "1px solid rgba(252, 129, 129, 0.4)",
+                        }}
+                      >
+                        <div
+                          style={{
+                            fontWeight: 700,
+                            fontSize: "16px",
+                            color:
+                              secureCareStatus === "contact_requested" ? "#68d391" : "#fc8181",
+                            marginBottom: "6px",
+                          }}
+                        >
+                          {secureCareStatus === "contact_requested"
+                            ? "✅ Contact request prepared"
+                            : "⚠️ Escalation needed"}
+                        </div>
+                        <p style={{ fontSize: "13px", color: "#a0aec0", lineHeight: 1.6 }}>
+                          {secureCareStatus === "contact_requested"
+                            ? `TinyFish navigated to ${selectedLiveProvider?.provider_name ?? "the provider"}'s contact page, filled the new patient form fields, and stopped before submitting. Review the form, confirm the details, and submit manually when ready.`
+                            : "The TinyFish agent encountered an issue. Manual outreach is recommended. Call the provider office directly using the phone number shown above."}
+                        </p>
+                      </div>
+                    )}
+                  </section>
 
                   <div className="no-print">
                     <FinalOutcome result={result} />

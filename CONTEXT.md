@@ -20,29 +20,39 @@ claims.
 - TypeScript
 - Tailwind CSS v4 through `@tailwindcss/postcss`
 - Local JSON sample data
-- Frontend-only workflow logic
+- Frontend workflow logic
+- **TinyFish** (Search, Fetch, Agent SSE) — core live-web provider discovery engine
+- Next.js API routes for server-side TinyFish calls (key-safe)
 
 ## Important Repo Notes
 
 - Read `AGENTS.md` before changing code.
 - This project uses `src/app` for the app router.
 - Path alias `@/*` maps to `./src/*`.
-- Prefer client-side logic and local data; do not add a backend unless a future
-  task explicitly requires it.
+- Prefer client-side logic and local data for the workflow; use the two API routes
+  only for TinyFish (server-side, key must never reach the browser).
+- `TINYFISH_API_KEY` must be in `.env.local`. When absent, all TinyFish routes
+  fall back to deterministic mock responses marked `🔶 DEMO MODE`.
 
 ## Main Files
 
-- `src/app/page.tsx`: root route, passes sample cases and providers into the UI.
-- `src/components/CoverageToCareDashboard.tsx`: patient-facing product, mock
-  subscription, intake, upload/paste flow, extraction review, results, and print
-  summary.
-- `src/lib/workflow/agent.ts`: orchestration entrypoint, including
-  `runCoverageToCareAgent`.
-- `src/lib/domain/`: parsing, Medicare signal assessment, referral assessment,
-  provider ranking, and simulated actions.
-- `src/lib/types/index.ts`: shared domain and workflow types.
-- `src/lib/data/`: local JSON data and adapters.
-- `readMe.md`: run instructions and project overview.
+- `src/app/page.tsx`: root route.
+- `src/app/api/tinyfish/discover/route.ts`: POST — TinyFish Search + Fetch pipeline.
+- `src/app/api/tinyfish/secure-care/route.ts`: POST streaming SSE — TinyFish Agent run.
+- `src/components/CoverageToCareDashboard.tsx`: main dashboard with TinyFish UI.
+- `src/components/TinyFishRunLog.tsx`: streaming SSE event log panel.
+- `src/components/LiveProviderCard.tsx`: card for a TinyFish-discovered provider.
+- `src/lib/tinyfish/search.ts`: TinyFish Search API wrapper.
+- `src/lib/tinyfish/fetch.ts`: TinyFish Fetch API wrapper.
+- `src/lib/tinyfish/normalize.ts`: page text → LiveProvider objects.
+- `src/lib/tinyfish/agent.ts`: TinyFish Agent SSE wrapper.
+- `src/lib/tinyfish/mock.ts`: mock boundary (used when API key absent).
+- `src/lib/workflow/agent.ts`: local orchestration, `runCoverageToCareAgent`.
+- `src/lib/domain/`: parsing, coverage, referral, providers, actions.
+- `src/lib/types/index.ts`: all shared TypeScript types.
+- `src/lib/data/`: local JSON seed data.
+- `.env.example`: environment variable template.
+- `readMe.md`: run instructions.
 
 ## Workflow
 

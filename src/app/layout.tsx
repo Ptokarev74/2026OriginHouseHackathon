@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Coverage-to-Care Rescue | Medicare Companion",
+  title: "Healthly | Medicare Guidance Demo",
   description:
-    "A frontend-only Medicare paperwork review prototype for possible coverage continuity signals, provider-fit review, and patient next steps.",
+    "A frontend-only Medicare paperwork review demo for possible coverage questions, document review, and patient next-step preparation.",
 };
 
 export default function RootLayout({

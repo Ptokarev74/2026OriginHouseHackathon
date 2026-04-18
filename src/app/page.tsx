@@ -1,183 +1,351 @@
 "use client";
 
-import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Badge } from "@/components/dashboard/ui";
 
-function TrustBanner() {
+type StartDemoHandler = () => void;
+
+const reviewItems = [
+  {
+    label: "Coverage type",
+    value: "Medicare Advantage notice",
+  },
+  {
+    label: "Possible concern",
+    value: "Referral or plan authorization may need confirmation",
+  },
+  {
+    label: "Recommended verification",
+    value: "Call the plan and provider office before the visit",
+  },
+  {
+    label: "Suggested next step",
+    value: "Prepare questions, dates, and document details for the call",
+  },
+];
+
+const benefits = [
+  {
+    title: "Clearer",
+    copy: "Turn complex Medicare notices into plain-language questions and next steps you can review before care is delayed.",
+  },
+  {
+    title: "Practical",
+    copy: "Prepare focused questions for your plan, provider office, or care team using details already found in your paperwork.",
+  },
+  {
+    title: "Careful",
+    copy: "Flag possible issues without making official Medicare, provider, eligibility, or coverage determinations.",
+  },
+];
+
+const reviewTypes = [
+  "Medicare notices and plan letters",
+  "Referral and authorization paperwork",
+  "Discharge or care transition instructions",
+  "Provider office follow-up details",
+];
+
+const workflowSteps = [
+  {
+    step: "01",
+    title: "Upload or paste a Medicare notice",
+    copy: "Bring a letter, referral note, or care document into the demo workspace for review.",
+  },
+  {
+    step: "02",
+    title: "Review possible coverage risks and questions",
+    copy: "Healthly highlights details that may be worth verifying with Medicare, your plan, or provider offices.",
+  },
+  {
+    step: "03",
+    title: "Leave with a visit-ready next-step summary",
+    copy: "Use the summary to prepare calls, appointments, and care conversations with clearer context.",
+  },
+];
+
+function Header({ onStartDemo }: { onStartDemo: StartDemoHandler }) {
   return (
-    <section className="border-y border-amber-200 bg-amber-50 px-4 py-4 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-7xl text-sm leading-6 text-amber-950 flex gap-3 text-left">
-        <span className="text-amber-600 mt-0.5">⚠️</span>
-        <p>
-          <strong>Prototype limits:</strong> results are informational only. This
-          tool does not determine Medicare eligibility, benefits, plan status, or
-          provider acceptance. Verify Medicare status, plan participation, payment
-          issues, and appointment availability directly with Medicare, your plan,
-          and provider offices. No real appointments are booked and no records are
-          sent.
-        </p>
+    <header className="sticky top-0 z-30 border-b border-slate-200/80 bg-white/90 backdrop-blur">
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-6 px-4 py-4 sm:px-6 lg:px-8">
+        <a className="flex items-center gap-3" href="#top" aria-label="Healthly home">
+          <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-teal-600 text-lg font-bold text-white shadow-sm">
+            H
+          </span>
+          <span className="text-xl font-bold tracking-tight text-slate-950">
+            Goonmaster 6769
+          </span>
+        </a>
+
+        <nav
+          className="hidden items-center gap-8 text-sm font-medium text-slate-600 md:flex"
+          aria-label="Primary navigation"
+        >
+          <a className="transition hover:text-teal-700" href="#how-it-works">
+            How it works
+          </a>
+          <a className="transition hover:text-teal-700" href="#what-it-reviews">
+            What it reviews
+          </a>
+          <a className="transition hover:text-teal-700" href="#trust-limits">
+            Trust & limits
+          </a>
+        </nav>
+
+        <button
+          className="rounded-lg bg-teal-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-800 focus:outline-none focus:ring-2 focus:ring-teal-600 focus:ring-offset-2"
+          onClick={onStartDemo}
+          type="button"
+        >
+          Start Healthly demo
+        </button>
       </div>
-    </section>
+    </header>
   );
 }
 
-function PricingSection({
-  isSubscriber,
-  onWorkspace,
-}: {
-  isSubscriber: boolean;
-  onWorkspace: () => void;
-}) {
+function SampleReviewCard() {
   return (
-    <section className="bg-white px-4 py-12 sm:px-6 lg:px-8" id="pricing">
-      <div className="mx-auto grid max-w-7xl gap-6 lg:grid-cols-[minmax(0,0.9fr)_24rem]">
-        <div>
-          <div className="text-xs font-semibold uppercase tracking-wide text-teal-700">
-            Subscriber plan
+    <aside
+      className="rounded-2xl border border-slate-200 bg-white p-4 shadow-xl shadow-slate-200/70 sm:p-5"
+      aria-label="Sample Healthly review"
+    >
+      <div className="rounded-xl border border-slate-200 bg-slate-50 p-5">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-teal-700">
+              Sample review
+            </p>
+            <h2 className="mt-2 text-2xl font-bold tracking-tight text-slate-950">
+              Notice summary
+            </h2>
           </div>
-          <h2 className="mt-2 text-3xl font-bold text-slate-950">
-            A patient workspace for Medicare paperwork.
-          </h2>
-          <p className="mt-4 max-w-3xl leading-7 text-slate-600 text-lg">
-            The subscription experience is simulated. It shows how a consumer
-            product could organize Medicare notices, surface possible coverage
-            continuity questions, and prepare provider calls without storing
-            documents or charging a card.
-          </p>
-          <div className="mt-8 grid gap-4 sm:grid-cols-3">
-            {[
-              "Paste or upload local text",
-              "Review extracted fields",
-              "Print a visit-ready summary",
-            ].map((item) => (
-              <div className="rounded-xl border border-slate-200 bg-slate-50 p-5 text-sm font-semibold text-slate-800 shadow-sm" key={item}>
-                {item}
-              </div>
-            ))}
-          </div>
+          <span className="rounded-full border border-teal-200 bg-teal-50 px-3 py-1 text-xs font-semibold text-teal-800">
+            Demo
+          </span>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-slate-950 p-6 text-white shadow-xl relative overflow-hidden group">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-teal-500/10 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
-          <div className="flex items-start justify-between gap-3 relative z-10">
-            <div>
-              <div className="text-sm font-semibold text-teal-300 tracking-wide uppercase">
-                Coverage Companion
-              </div>
-              <div className="mt-2 text-5xl font-bold tracking-tight">$12</div>
-              <div className="text-sm text-slate-400 mt-1 font-medium">per month, simulated</div>
+        <dl className="mt-6 space-y-3">
+          {reviewItems.map((item) => (
+            <div
+              className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm"
+              key={item.label}
+            >
+              <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                {item.label}
+              </dt>
+              <dd className="mt-1 text-sm font-semibold leading-6 text-slate-900">
+                {item.value}
+              </dd>
             </div>
-            <Badge tone="good">
-              Prototype
-            </Badge>
-          </div>
-          <ul className="mt-8 space-y-4 text-sm text-slate-300 relative z-10">
-            <li className="flex gap-2"><span className="text-teal-400">✓</span> Medicare letter and plan notice organizer.</li>
-            <li className="flex gap-2"><span className="text-teal-400">✓</span> Possible issue flags and verification questions.</li>
-            <li className="flex gap-2"><span className="text-teal-400">✓</span> Local provider fit ranking over fictional demo data.</li>
-            <li className="flex gap-2 text-slate-400"><span className="text-slate-600">✓</span> No real payment, account, storage, or claim decision.</li>
-          </ul>
-          <button
-            className="mt-8 w-full rounded-xl bg-teal-500 px-5 py-3.5 font-semibold text-slate-950 transition hover:bg-teal-400 shadow-md hover:shadow-lg relative z-10"
-            onClick={onWorkspace}
-            type="button"
-          >
-            {isSubscriber ? "Open subscriber workspace" : "Continue to prototype"}
-          </button>
+          ))}
+        </dl>
+
+        <div className="mt-5 rounded-lg border border-teal-200 bg-teal-50 p-4">
+          <p className="text-sm font-semibold text-teal-950">
+            Ready-to-ask question
+          </p>
+          <p className="mt-2 text-sm leading-6 text-teal-900">
+            What should I confirm before my appointment so coverage or referral
+            questions do not delay care?
+          </p>
         </div>
       </div>
-    </section>
+    </aside>
   );
 }
 
-function ProductHero({
-  onWorkspace,
-}: {
-  onWorkspace: () => void;
-}) {
+function HeroSection({ onStartDemo }: { onStartDemo: StartDemoHandler }) {
   return (
-    <section className="relative overflow-hidden bg-slate-950 text-white">
-      {/* Decorative background gradient */}
-      <div className="absolute inset-x-0 bottom-0 top-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-teal-900/40 via-slate-950 to-slate-950 pointer-events-none"></div>
-
-      <div className="mx-auto grid min-h-[680px] max-w-7xl gap-10 px-4 py-8 sm:px-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(22rem,0.8fr)] lg:px-8 relative z-10">
-        <div className="flex flex-col justify-center pb-10 pt-6">
-          <div className="mb-6">
-            <Badge tone="dark">Frontend-only Medicare prototype</Badge>
-          </div>
-          <h1 className="max-w-4xl text-5xl font-extrabold tracking-tight leading-[1.1] sm:text-6xl lg:text-7xl">
-            Understand Medicare paperwork before it disrupts your care.
-          </h1>
-          <p className="mt-6 max-w-2xl text-xl leading-relaxed text-slate-300">
-            Coverage-to-Care Rescue helps Medicare users review letters, plan
-            notices, referral notes, and discharge paperwork for possible access
-            issues, questions to verify, provider options, and next steps.
+    <section
+      className="relative overflow-hidden border-b border-slate-200 bg-gradient-to-b from-teal-50/80 via-white to-white"
+      id="top"
+    >
+      <div className="mx-auto grid max-w-7xl gap-12 px-4 py-16 sm:px-6 sm:py-20 lg:grid-cols-[minmax(0,1.02fr)_minmax(24rem,0.78fr)] lg:px-8 lg:py-24">
+        <div className="flex flex-col justify-center">
+          <p className="inline-flex w-fit rounded-full border border-teal-200 bg-white px-3 py-1 text-sm font-semibold text-teal-800 shadow-sm">
+            Medicare guidance demo
           </p>
-          <div className="mt-10 flex flex-wrap gap-4">
+
+          <h1 className="mt-7 max-w-4xl text-4xl font-bold leading-tight tracking-tight text-slate-950 sm:text-5xl lg:text-6xl">
+            Understand your Medicare paperwork before it disrupts your care.
+          </h1>
+
+          <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-600">
+            Healthly helps you review Medicare notices, referral documents, and
+            care paperwork in one place. It highlights possible issues, suggests
+            questions to ask, and helps you prepare next steps before coverage
+            problems delay care.
+          </p>
+
+          <div className="mt-9 flex flex-col gap-3 sm:flex-row">
             <button
-              className="min-h-14 rounded-xl bg-teal-500 px-8 py-3 font-semibold tracking-wide text-slate-950 shadow-lg shadow-teal-500/20 transition hover:bg-teal-400 hover:-translate-y-0.5"
-              onClick={onWorkspace}
+              className="inline-flex min-h-12 items-center justify-center rounded-lg bg-teal-700 px-6 py-3 text-base font-semibold text-white shadow-sm transition hover:bg-teal-800 focus:outline-none focus:ring-2 focus:ring-teal-600 focus:ring-offset-2"
+              onClick={onStartDemo}
               type="button"
             >
-              Start Rescue Workflow
+              Start Healthly demo
             </button>
             <a
-              className="inline-flex min-h-14 items-center rounded-xl border border-white/20 px-8 py-3 font-semibold text-white transition hover:bg-white/10 hover:border-white/40"
-              href="#pricing"
+              className="inline-flex min-h-12 items-center justify-center rounded-lg border border-slate-300 bg-white px-6 py-3 text-base font-semibold text-slate-800 shadow-sm transition hover:border-teal-300 hover:text-teal-800 focus:outline-none focus:ring-2 focus:ring-teal-600 focus:ring-offset-2"
+              href="#how-it-works"
             >
-              See prototype details
+              See how it works
             </a>
           </div>
-          <div className="mt-12 grid max-w-3xl gap-4 sm:grid-cols-3">
-            {[
-              ["Local", "Text is processed securely in your browser for this demo."],
-              ["Careful", "Flags possible issues, never makes official determinations."],
-              ["Practical", "Turns confusing paperwork into clear verification questions."],
-            ].map(([label, copy]) => (
-              <div className="rounded-xl border border-white/10 bg-white/[0.03] p-5 backdrop-blur-sm" key={label}>
-                <div className="font-bold text-teal-400 tracking-wide">{label}</div>
-                <p className="mt-2 text-sm leading-6 text-slate-400">{copy}</p>
-              </div>
-            ))}
+
+          <div className="mt-10 grid max-w-3xl gap-3 sm:grid-cols-3">
+            {["Plain-language review", "Verification questions", "Demo only"].map(
+              (item) => (
+                <div
+                  className="rounded-lg border border-slate-200 bg-white/80 px-4 py-3 text-sm font-semibold text-slate-700 shadow-sm"
+                  key={item}
+                >
+                  {item}
+                </div>
+              ),
+            )}
           </div>
         </div>
 
-        <div className="flex items-end lg:items-center">
-          <div className="w-full rounded-2xl border border-white/10 bg-white p-2 text-slate-950 shadow-[0_0_50px_-12px_rgba(20,184,166,0.25)]">
-            <div className="rounded-xl border border-slate-200 bg-slate-50 p-6">
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <div className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                    Document review
-                  </div>
-                  <div className="mt-1 text-xl font-bold tracking-tight">Medicare notice scan</div>
-                </div>
-                <Badge tone="warn">Verify</Badge>
-              </div>
-              <div className="mt-6 space-y-3">
-                {[
-                  ["Coverage type", "Medicare Advantage"],
-                  ["Possible issue", "Premium/payment notice"],
-                  ["Deadline", "April 26, 2026"],
-                  ["Provider fit", "Confirm plan participation"],
-                ].map(([label, value]) => (
-                  <div
-                    className="grid grid-cols-[8rem_1fr] gap-3 rounded-xl border border-slate-200 bg-white p-3.5 text-sm shadow-sm"
-                    key={label}
-                  >
-                    <div className="font-semibold text-slate-500">{label}</div>
-                    <div className="font-bold text-slate-900">{value}</div>
-                  </div>
-                ))}
-              </div>
-              <div className="mt-6 rounded-xl border border-teal-100 bg-teal-50/50 p-4 text-sm leading-6 text-teal-900">
-                <span className="font-semibold mr-1 text-teal-700">Suggested next step:</span> 
-                Call the plan and provider office to confirm
-                payment status, participation, and appointment requirements.
-              </div>
+        <div className="flex items-center">
+          <SampleReviewCard />
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function WhyHealthlySection() {
+  return (
+    <section className="bg-white px-4 py-16 sm:px-6 lg:px-8" id="why-healthly">
+      <div className="mx-auto max-w-7xl">
+        <div className="max-w-3xl">
+          <p className="text-sm font-semibold uppercase tracking-wide text-teal-700">
+            Why Healthly
+          </p>
+          <h2 className="mt-3 text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">
+            Practical guidance for Medicare paperwork moments.
+          </h2>
+          <p className="mt-4 text-lg leading-8 text-slate-600">
+            Healthly is designed to help people slow down, organize what a notice
+            says, and prepare better questions before making calls or attending a
+            visit.
+          </p>
+        </div>
+
+        <div className="mt-10 grid gap-5 md:grid-cols-3">
+          {benefits.map((benefit) => (
+            <article
+              className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+              key={benefit.title}
+            >
+              <h3 className="text-xl font-bold text-slate-950">
+                {benefit.title}
+              </h3>
+              <p className="mt-3 text-base leading-7 text-slate-600">
+                {benefit.copy}
+              </p>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function WhatItReviewsSection() {
+  return (
+    <section
+      className="border-y border-slate-200 bg-slate-50 px-4 py-16 sm:px-6 lg:px-8"
+      id="what-it-reviews"
+    >
+      <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[0.8fr_1fr]">
+        <div>
+          <p className="text-sm font-semibold uppercase tracking-wide text-teal-700">
+            What it reviews
+          </p>
+          <h2 className="mt-3 text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">
+            Bring the documents that usually create confusion.
+          </h2>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          {reviewTypes.map((type) => (
+            <div
+              className="rounded-xl border border-slate-200 bg-white p-5 text-base font-semibold leading-7 text-slate-800 shadow-sm"
+              key={type}
+            >
+              {type}
             </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function HowItWorksSection({ onStartDemo }: { onStartDemo: StartDemoHandler }) {
+  return (
+    <section className="bg-white px-4 py-16 sm:px-6 lg:px-8" id="how-it-works">
+      <div className="mx-auto max-w-7xl">
+        <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
+          <div className="max-w-3xl">
+            <p className="text-sm font-semibold uppercase tracking-wide text-teal-700">
+              How Healthly works
+            </p>
+            <h2 className="mt-3 text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">
+              From confusing notice to prepared next step.
+            </h2>
           </div>
+          <button
+            className="inline-flex min-h-12 w-fit items-center justify-center rounded-lg bg-teal-700 px-6 py-3 text-base font-semibold text-white shadow-sm transition hover:bg-teal-800 focus:outline-none focus:ring-2 focus:ring-teal-600 focus:ring-offset-2"
+            onClick={onStartDemo}
+            type="button"
+          >
+            Start Healthly demo
+          </button>
+        </div>
+
+        <div className="mt-10 grid gap-5 lg:grid-cols-3">
+          {workflowSteps.map((step) => (
+            <article
+              className="rounded-xl border border-slate-200 bg-slate-50 p-6"
+              key={step.step}
+            >
+              <span className="text-sm font-bold text-teal-700">
+                {step.step}
+              </span>
+              <h3 className="mt-4 text-xl font-bold text-slate-950">
+                {step.title}
+              </h3>
+              <p className="mt-3 text-base leading-7 text-slate-600">
+                {step.copy}
+              </p>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function TrustSection() {
+  return (
+    <section className="bg-teal-950 px-4 py-12 sm:px-6 lg:px-8" id="trust-limits">
+      <div className="mx-auto max-w-7xl">
+        <div className="rounded-2xl border border-white/10 bg-white/[0.06] p-6 sm:p-8">
+          <p className="text-sm font-semibold uppercase tracking-wide text-teal-200">
+            Trust & limits
+          </p>
+          <h2 className="mt-3 text-2xl font-bold tracking-tight text-white">
+            Informational guidance, not an official decision.
+          </h2>
+          <p className="mt-4 max-w-4xl text-base leading-8 text-teal-50">
+            Healthly provides informational guidance only and does not make
+            official Medicare, provider, or coverage determinations. Always
+            confirm status and benefits directly with Medicare, your plan, and
+            provider offices.
+          </p>
         </div>
       </div>
     </section>
@@ -186,23 +354,19 @@ function ProductHero({
 
 export default function LandingPage() {
   const router = useRouter();
-  const [isSubscriber, setIsSubscriber] = useState(false);
 
-  const handleStartWorkspace = () => {
-    setIsSubscriber(true);
+  const handleStartDemo = () => {
     router.push("/dashboard/intake");
   };
 
   return (
-    <main className="min-h-screen bg-[#f7f9f6] font-sans selection:bg-teal-500/30">
-      <ProductHero 
-        onWorkspace={handleStartWorkspace} 
-      />
-      <PricingSection 
-        isSubscriber={isSubscriber} 
-        onWorkspace={handleStartWorkspace} 
-      />
-      <TrustBanner />
+    <main className="min-h-screen bg-white font-sans text-slate-950 selection:bg-teal-200">
+      <Header onStartDemo={handleStartDemo} />
+      <HeroSection onStartDemo={handleStartDemo} />
+      <WhyHealthlySection />
+      <WhatItReviewsSection />
+      <HowItWorksSection onStartDemo={handleStartDemo} />
+      <TrustSection />
     </main>
   );
 }

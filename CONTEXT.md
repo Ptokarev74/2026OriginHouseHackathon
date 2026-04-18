@@ -19,6 +19,8 @@ claims.
 - React 19.2.4
 - TypeScript
 - Tailwind CSS v4 through `@tailwindcss/postcss`
+- Lucide React (Icons)
+- Inngest/TinyFish (Event Tracking integration stubbed)
 - Local JSON sample data
 - Frontend-only workflow logic
 
@@ -32,10 +34,10 @@ claims.
 
 ## Main Files
 
-- `src/app/page.tsx`: root route, passes sample cases and providers into the UI.
-- `src/components/CoverageToCareDashboard.tsx`: patient-facing product, mock
-  subscription, intake, upload/paste flow, extraction review, results, and print
-  summary.
+- `src/app/page.tsx`: Landing route, passes into dashboard.
+- `src/app/dashboard/layout.tsx`: Main dashboard shell wrapping a Context provider (`DashboardContext.tsx`) and an Agentic Feedback sidebar tracker (`ReasoningTrace.tsx`).
+- `src/app/dashboard/*/page.tsx`: Distinct route pages tracking the workflow journey, from Intake to Final Status.
+- `src/components/dashboard/*`: Shared UI and Context definitions orchestrating the workflow.
 - `src/lib/workflow/agent.ts`: orchestration entrypoint, including
   `runCoverageToCareAgent`.
 - `src/lib/domain/`: parsing, Medicare signal assessment, referral assessment,

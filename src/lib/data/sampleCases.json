@@ -1,0 +1,39 @@
+[
+  {
+    "id": "case-maria",
+    "label": "Maria Chen - Medicare Advantage payment notice",
+    "description": "Medicare Advantage member worried about a premium/payment notice, a near deadline, Spanish preference, and cardiology follow-up.",
+    "noticeId": "notice-001",
+    "referralNoteId": "referral-001",
+    "preferences": {
+      "maxDistanceMiles": 20,
+      "languagePreference": "Spanish",
+      "transportationNeeded": true
+    }
+  },
+  {
+    "id": "case-robert",
+    "label": "Robert Ellis - Original Medicare provider confusion",
+    "description": "Original Medicare user trying to confirm whether a pulmonology provider accepts Medicare after a discharge follow-up note.",
+    "noticeId": "notice-002",
+    "referralNoteId": "referral-002",
+    "preferences": {
+      "maxDistanceMiles": 18,
+      "needsTelehealth": true,
+      "languagePreference": "English",
+      "transportationNeeded": false
+    }
+  },
+  {
+    "id": "case-denise",
+    "label": "Denise Walker - dual-eligible care coordination",
+    "description": "Dual-eligible patient with network and transportation concerns before a behavioral health follow-up.",
+    "noticeId": "notice-003",
+    "referralNoteId": "referral-003",
+    "preferences": {
+      "maxDistanceMiles": 15,
+      "languagePreference": "English",
+      "transportationNeeded": true
+    }
+  }
+]

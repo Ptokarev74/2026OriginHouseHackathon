@@ -1,34 +1,105 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Coverage-to-Care Rescue
 
-## Getting Started
+Coverage-to-Care Rescue is a hackathon-quality, frontend-only Medicare paperwork
+review prototype. It is framed as a direct-to-consumer subscription-style product
+that helps Medicare users organize letters, notices, referral documents, and
+discharge notes so they can spot possible coverage or access issues and prepare
+questions before care is disrupted.
 
-First, run the development server:
+The app does not determine Medicare eligibility, benefits, plan status, provider
+participation, or appointment availability. It does not create accounts, charge a
+card, store real documents, book appointments, submit paperwork, or send medical
+records.
+
+## Run Locally
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Other useful commands:
 
-## Learn More
+```bash
+npm run lint
+npm run build
+npm run start
+```
 
-To learn more about Next.js, take a look at the following resources:
+## What The Prototype Does
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- Presents a Medicare-focused landing page with simulated subscription entry.
+- Lets a user continue as a mock subscriber using localStorage only.
+- Supports two intake paths:
+  - Try a fictional sample Medicare case.
+  - Paste document text or upload a `.txt` file locally in the browser.
+- Gracefully declines PDF parsing and asks the user to paste text instead.
+- Extracts editable Medicare-related fields before workflow execution.
+- Runs deterministic local workflow logic for possible issue flags, provider-fit
+  ranking, simulated preparation steps, and patient-friendly next steps.
+- Provides a browser-printable summary for the user to bring to a call or visit.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Architecture
 
-## Deploy on Vercel
+- `src/app`: Next.js app router entrypoint, metadata, and global Tailwind/print
+  styles.
+- `src/components`: patient-facing product UI, mock subscriber flow, intake,
+  extraction review, workflow result panels, and print summary.
+- `src/lib/types`: shared TypeScript domain and workflow types.
+- `src/lib/domain`: deterministic parsing, Medicare signal assessment, referral
+  normalization, provider filtering/ranking, and simulated patient actions.
+- `src/lib/workflow`: `runCoverageToCareAgent(inputCase)` orchestration and
+  workflow step metadata.
+- `src/lib/data`: fictional local Medicare cases, notices, referral notes, and
+  provider data.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+The central workflow result is still `AgentRunResult`, which drives all result
+panels after a run.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Local Persistence
+
+- `localStorage` stores mock subscriber status, selected intake mode, and last
+  preferences.
+- `sessionStorage` stores pasted or uploaded text for the current browser
+  session only.
+- No backend, database, auth provider, billing service, or document store is
+  included.
+
+## What Is Simulated
+
+- Subscription status and pricing.
+- Medicare document parsing and issue detection.
+- Provider ranking over a fictional local JSON dataset.
+- Provider call preparation.
+- Paperwork packet preparation.
+- Patient next-step recommendations.
+
+Always verify Medicare status, plan participation, provider acceptance, costs,
+deadlines, and appointment availability directly with Medicare, the plan, or the
+provider office.
+
+## Sample Data
+
+The local dataset includes:
+
+- 3 fictional Medicare-related cases.
+- 3 fictional plan or Medicare notices.
+- 3 fictional referral or discharge notes.
+- 15 fictional providers with accepted insurance, specialty, distance,
+  availability, cost level, languages, telehealth, and accepting-new-patients
+  status.
+
+## Provider Ranking
+
+Eligible providers are filtered by specialty, Medicare compatibility, maximum
+distance, language preference when present, and accepting-new-patients status.
+
+Ranked providers use a transparent 100-point score:
+
+- Medicare coverage fit: 40
+- Specialty match: 20
+- Distance: 15
+- Availability: 15
+- Cost signal: 10

@@ -12,7 +12,7 @@ export function Header({ onStartDemo }: { onStartDemo: StartDemoHandler }) {
 
   return (
     <header className="sticky top-0 z-30 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl">
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-5 px-4 py-3.5 sm:px-6 lg:px-8">
+      <div className="flex w-full items-center justify-between gap-5 px-4 py-3.5 sm:px-6 lg:px-8">
         <a
           className="flex items-center gap-3"
           href="#top"
@@ -43,7 +43,6 @@ export function Header({ onStartDemo }: { onStartDemo: StartDemoHandler }) {
         </nav>
 
         <div className="flex items-center gap-3">
-          <LanguageSwitcher />
           <MotionButton
             className="rounded-lg bg-teal-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm shadow-teal-900/20 transition hover:bg-teal-800 focus:outline-none focus:ring-2 focus:ring-teal-600 focus:ring-offset-2"
             onClick={onStartDemo}
@@ -51,6 +50,7 @@ export function Header({ onStartDemo }: { onStartDemo: StartDemoHandler }) {
           >
             {content.header.startDemo}
           </MotionButton>
+          <LanguageSwitcher />
         </div>
       </div>
     </header>

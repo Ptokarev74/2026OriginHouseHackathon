@@ -1,3 +1,5 @@
+import type { AppLanguage } from "@/lib/i18n/types";
+
 export type UrgencyLevel = "routine" | "soon" | "urgent" | "overdue";
 export type ExtractionConfidence = "low" | "medium" | "high";
 export type DocumentSourceKind =
@@ -146,6 +148,7 @@ export type AgentInputCase = {
   documents: SourceDocument[];
   preferences: CommunicationPreferences;
   reviewedNotice?: ParsedNotice;
+  language?: AppLanguage;
 };
 
 export type LiveGuidanceRequest = {

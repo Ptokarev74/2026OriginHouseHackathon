@@ -11,9 +11,11 @@ import {
   Loader2,
   UploadCloud,
 } from "lucide-react";
+import { useLanguage } from "@/components/i18n/LanguageProvider";
 import { useDashboard } from "@/components/dashboard/DashboardContext";
 import { Section, classNames } from "@/components/dashboard/ui";
 import type { FileMessageTone } from "@/components/dashboard/DashboardContext";
+import { dashboardCopy } from "@/lib/i18n/dashboard";
 
 function fileMessageClasses(tone: FileMessageTone) {
   if (tone === "success") {
@@ -39,6 +41,8 @@ function fileMessageMarker(tone: FileMessageTone) {
 
 export default function IntakePage() {
   const router = useRouter();
+  const { language } = useLanguage();
+  const copy = dashboardCopy[language];
   const {
     mode,
     setMode,
@@ -71,9 +75,9 @@ export default function IntakePage() {
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="mb-6 border-b border-slate-200 pb-4">
-        <h1 className="text-3xl font-bold text-slate-950">Intake</h1>
+        <h1 className="text-3xl font-bold text-slate-950">{copy.intake.title}</h1>
         <p className="mt-2 text-slate-600">
-          Select a fictional Medicaid notice packet or paste local notice text to begin the rescue workflow.
+          {copy.intake.copy}
         </p>
       </div>
 
@@ -97,10 +101,12 @@ export default function IntakePage() {
                   : "text-slate-400 group-hover:text-slate-600",
               )}
             />
-            <div className="text-lg font-semibold text-slate-950">Sample Packets</div>
+            <div className="text-lg font-semibold text-slate-950">
+              {copy.intake.sampleTitle}
+            </div>
           </div>
           <p className="text-sm leading-6 text-slate-600">
-            Use fictional notices to see blocker detection, readiness checks, and packet preparation.
+            {copy.intake.sampleCopy}
           </p>
         </button>
 
@@ -123,20 +129,22 @@ export default function IntakePage() {
                   : "text-slate-400 group-hover:text-slate-600",
               )}
             />
-            <div className="text-lg font-semibold text-slate-950">Paste or Upload</div>
+            <div className="text-lg font-semibold text-slate-950">
+              {copy.intake.uploadTitle}
+            </div>
           </div>
           <p className="text-sm leading-6 text-slate-600">
-            Paste text, upload .txt, or OCR a scanned PDF/image locally in the browser.
+            {copy.intake.uploadCopy}
           </p>
         </button>
       </div>
 
       {mode === "sample" ? (
-        <Section eyebrow="Demo Path" title="Choose a notice packet">
+        <Section eyebrow={copy.intake.demoEyebrow} title={copy.intake.choosePacket}>
           <div className="grid gap-6 md:grid-cols-[minmax(0,1fr)_18rem]">
             <div>
               <label className="mb-2 block text-sm font-semibold text-slate-700" htmlFor="case-select">
-                Sample case
+                {copy.intake.sampleCase}
               </label>
               <select
                 className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-slate-950 shadow-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500"
@@ -157,23 +165,24 @@ export default function IntakePage() {
             <div className="rounded-lg border border-slate-200 bg-slate-50 p-5">
               <div className="mb-4 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
                 <span className="h-2 w-2 rounded-full bg-slate-400" />
-                Packet contents
+                {copy.intake.packetContents}
               </div>
               <dl className="space-y-4 text-sm">
                 <div className="border-b border-slate-200 pb-2">
-                  <dt className="text-slate-500">Notice</dt>
+                  <dt className="text-slate-500">{copy.intake.notice}</dt>
                   <dd className="mt-1 font-semibold text-slate-950">{selectedCase.notice.title}</dd>
                 </div>
                 <div className="border-b border-slate-200 pb-2">
-                  <dt className="text-slate-500">Supporting docs</dt>
+                  <dt className="text-slate-500">{copy.intake.supportingDocs}</dt>
                   <dd className="mt-1 font-semibold text-slate-950">
                     {selectedCase.supportingDocuments.length}
                   </dd>
                 </div>
                 <div>
-                  <dt className="text-slate-500">Preference</dt>
+                  <dt className="text-slate-500">{copy.intake.preference}</dt>
                   <dd className="mt-1 font-semibold text-slate-950">
-                    {selectedCase.preferences.languagePreference ?? "English"} /{" "}
+                    {selectedCase.preferences.languagePreference ??
+                      (language === "es" ? "Espanol" : "English")} /{" "}
                     {selectedCase.preferences.contactMethod ?? "SMS"}
                   </dd>
                 </div>
@@ -182,33 +191,33 @@ export default function IntakePage() {
           </div>
         </Section>
       ) : (
-        <Section eyebrow="Your Notice" title="Provide Medicaid notice text">
+        <Section eyebrow={copy.intake.yourNotice} title={copy.intake.provideText}>
           <div className="mb-5 grid gap-3 md:grid-cols-3">
             <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
               <div className="flex items-center gap-2 text-sm font-semibold text-slate-950">
                 <FileText className="h-4 w-4 text-slate-500" />
-                Paste text
+                {copy.intake.pasteText}
               </div>
               <p className="mt-2 text-xs leading-5 text-slate-600">
-                Type or paste notice text directly into the review box.
+                {copy.intake.pasteTextCopy}
               </p>
             </div>
             <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
               <div className="flex items-center gap-2 text-sm font-semibold text-slate-950">
                 <UploadCloud className="h-4 w-4 text-slate-500" />
-                Upload .txt
+                {copy.intake.uploadTxt}
               </div>
               <p className="mt-2 text-xs leading-5 text-slate-600">
-                Read plain-text notices locally for the current session.
+                {copy.intake.uploadTxtCopy}
               </p>
             </div>
             <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4">
               <div className="flex items-center gap-2 text-sm font-semibold text-emerald-950">
                 <FileScan className="h-4 w-4 text-emerald-700" />
-                OCR PDF/image
+                {copy.intake.ocr}
               </div>
               <p className="mt-2 text-xs leading-5 text-emerald-900">
-                Render PDFs or images in-browser and extract editable text.
+                {copy.intake.ocrCopy}
               </p>
             </div>
           </div>
@@ -216,11 +225,11 @@ export default function IntakePage() {
           <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
             <div>
               <label className="mb-2 block text-sm font-semibold text-slate-700" htmlFor="upload-text">
-                {isOcrText ? "Extracted notice text" : "Notice content"}
+                {isOcrText ? copy.intake.extractedText : copy.intake.noticeContent}
               </label>
               {isOcrText ? (
                 <div className="mb-3 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm leading-6 text-emerald-950">
-                  OCR text is ready for review. Edit anything that looks wrong before analyzing.
+                  {copy.intake.ocrReady}
                 </div>
               ) : null}
               <textarea
@@ -228,14 +237,14 @@ export default function IntakePage() {
                 disabled={isExtracting}
                 id="upload-text"
                 onChange={(event) => updateUploadText(event.target.value)}
-                placeholder="Paste Medicaid closure, renewal, termination, action-required, or case status letter text here."
+                placeholder={copy.intake.placeholder}
                 value={uploadText}
               />
             </div>
             <div className="space-y-4">
               <div className="rounded-lg border border-slate-200 bg-slate-50 p-5">
                 <label className="mb-2 block text-sm font-semibold text-slate-700" htmlFor="file-upload">
-                  Upload notice file
+                  {copy.intake.uploadFile}
                 </label>
                 <input
                   accept=".txt,.pdf,.png,.jpg,.jpeg,text/plain,application/pdf,image/png,image/jpeg"
@@ -252,19 +261,19 @@ export default function IntakePage() {
                 <div className="mt-4 grid gap-2 text-xs text-slate-600">
                   <div className="flex items-center gap-2">
                     <FileText className="h-4 w-4 text-slate-400" />
-                    .txt files load as text
+                    {copy.intake.txtFiles}
                   </div>
                   <div className="flex items-center gap-2">
                     <FileScan className="h-4 w-4 text-slate-400" />
-                    PDFs OCR up to 5 pages
+                    {copy.intake.pdfFiles}
                   </div>
                   <div className="flex items-center gap-2">
                     <ImageIcon className="h-4 w-4 text-slate-400" />
-                    PNG/JPG images OCR locally
+                    {copy.intake.imageFiles}
                   </div>
                 </div>
                 {isExtracting ? (
-                  <div className="mt-4 rounded-lg border border-sky-200 bg-sky-50 p-4">
+                <div className="mt-4 rounded-lg border border-sky-200 bg-sky-50 p-4">
                     <div className="flex items-center gap-2 text-sm font-semibold text-sky-950">
                       <Loader2 className="h-4 w-4 animate-spin text-sky-700" />
                       {ocrState.label ?? "Extracting text..."}
@@ -300,7 +309,7 @@ export default function IntakePage() {
                 ) : null}
               </div>
               <div className="rounded-lg border border-slate-200 bg-white p-4 text-xs text-slate-500 shadow-sm">
-                OCR runs in this browser tab and only produces editable text for the existing demo workflow.
+                {copy.intake.ocrLocal}
               </div>
             </div>
           </div>
@@ -314,7 +323,7 @@ export default function IntakePage() {
           onClick={handleNextStep}
           type="button"
         >
-          Analyze Notice
+          {copy.intake.analyzeNotice}
           <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1 group-disabled:opacity-50" />
         </button>
       </div>

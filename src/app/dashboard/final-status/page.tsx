@@ -3,11 +3,20 @@
 import React, { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Printer, RefreshCw } from "lucide-react";
+import { useLanguage } from "@/components/i18n/LanguageProvider";
 import { useDashboard } from "@/components/dashboard/DashboardContext";
 import { Badge, Section } from "@/components/dashboard/ui";
+import {
+  caseStatusLabel,
+  dashboardCopy,
+  finalStatusHeadline,
+  noticeTypeLabel,
+} from "@/lib/i18n/dashboard";
 
 export default function FinalStatusPage() {
   const router = useRouter();
+  const { language } = useLanguage();
+  const copy = dashboardCopy[language];
   const { result, status, triggerNextStep, setMode } = useDashboard();
 
   useEffect(() => {
@@ -36,9 +45,9 @@ export default function FinalStatusPage() {
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="mb-6 flex items-end justify-between border-b border-slate-200 pb-4">
         <div>
-          <h1 className="text-3xl font-bold text-slate-950">Final Status</h1>
+          <h1 className="text-3xl font-bold text-slate-950">{copy.final.title}</h1>
           <p className="mt-2 text-slate-600">
-            Review the rescue result and print a case summary for follow-up.
+            {copy.final.copy}
           </p>
         </div>
         <button
@@ -47,7 +56,7 @@ export default function FinalStatusPage() {
           type="button"
         >
           <Printer className="h-5 w-5" />
-          Print Summary
+          {copy.final.print}
         </button>
       </div>
 
@@ -55,23 +64,23 @@ export default function FinalStatusPage() {
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <div>
             <div className="text-xs font-semibold uppercase tracking-wide text-emerald-800">
-              Rescue outcome
+              {copy.final.outcome}
             </div>
             <h2 className="mt-1 text-3xl font-bold text-emerald-950">
-              {result.finalStatus === "ready_to_submit"
-                ? "Ready to submit"
-                : result.finalStatus === "escalation_needed"
-                  ? "Escalation needed"
-                  : "Awaiting documents"}
+              {finalStatusHeadline(language, result.finalStatus)}
             </h2>
           </div>
-          <Badge tone={statusTone}>{result.finalStatus.replaceAll("_", " ").toUpperCase()}</Badge>
+          <Badge tone={statusTone}>
+            {caseStatusLabel(language, result.finalStatus).toUpperCase()}
+          </Badge>
         </div>
 
         <p className="text-lg leading-relaxed text-slate-800">{result.outcomeSummary}</p>
 
         <div className="mt-6">
-          <h3 className="mb-3 text-lg font-bold text-emerald-950">Next steps</h3>
+          <h3 className="mb-3 text-lg font-bold text-emerald-950">
+            {copy.final.nextSteps}
+          </h3>
           <ul className="space-y-3">
             {result.patientInstructions.map((instruction, index) => (
               <li
@@ -88,23 +97,27 @@ export default function FinalStatusPage() {
         </div>
       </div>
 
-      <Section eyebrow="Reference File" title="Printable rescue summary" className="print-summary">
+      <Section
+        eyebrow={copy.final.referenceEyebrow}
+        title={copy.final.referenceTitle}
+        className="print-summary"
+      >
         <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
           <div>
             <h2 className="text-2xl font-bold text-slate-950">
-              Medicaid notice rescue summary
+              {copy.final.summaryTitle}
             </h2>
             <p className="mt-2 text-sm leading-6 text-slate-600">
-              This summary is generated from fictional or locally pasted text for a frontend demo.
+              {copy.final.summaryCopy}
             </p>
           </div>
-          <Badge tone="neutral">Informational only</Badge>
+          <Badge tone="neutral">{copy.common.informationalOnly}</Badge>
         </div>
 
         <div className="mb-6 grid gap-6 md:grid-cols-2">
           <div className="rounded-lg border border-slate-200 bg-slate-50 p-5">
             <h3 className="mb-3 border-b border-slate-200 pb-2 font-bold text-slate-950">
-              Notice summary
+              {copy.final.noticeSummary}
             </h3>
             <p className="text-sm leading-6 text-slate-700">
               {result.parsedNotice.documentSummary}
@@ -112,29 +125,29 @@ export default function FinalStatusPage() {
           </div>
           <div className="rounded-lg border border-slate-200 bg-slate-50 p-5">
             <h3 className="mb-3 border-b border-slate-200 pb-2 font-bold text-slate-950">
-              Reviewed details
+              {copy.final.reviewedDetails}
             </h3>
             <dl className="space-y-2 text-sm text-slate-700">
               <div className="flex justify-between gap-4">
-                <dt className="font-semibold text-slate-500">Notice:</dt>
+                <dt className="font-semibold text-slate-500">{copy.final.notice}</dt>
                 <dd className="text-right font-medium">
-                  {result.parsedNotice.noticeType.replaceAll("_", " ")}
+                  {noticeTypeLabel(language, result.parsedNotice.noticeType)}
                 </dd>
               </div>
               <div className="flex justify-between gap-4">
-                <dt className="font-semibold text-slate-500">Deadline:</dt>
+                <dt className="font-semibold text-slate-500">{copy.final.deadline}</dt>
                 <dd className="text-right font-medium">
-                  {result.parsedNotice.deadlineDate ?? "Verify manually"}
+                  {result.parsedNotice.deadlineDate ?? copy.common.verifyManually}
                 </dd>
               </div>
               <div className="flex justify-between gap-4">
-                <dt className="font-semibold text-slate-500">Blocker:</dt>
+                <dt className="font-semibold text-slate-500">{copy.final.blocker}</dt>
                 <dd className="text-right font-medium">{result.blockerAssessment.label}</dd>
               </div>
               <div className="flex justify-between gap-4">
-                <dt className="font-semibold text-slate-500">Status:</dt>
+                <dt className="font-semibold text-slate-500">{copy.final.status}</dt>
                 <dd className="text-right font-medium">
-                  {result.finalStatus.replaceAll("_", " ")}
+                  {caseStatusLabel(language, result.finalStatus)}
                 </dd>
               </div>
             </dl>
@@ -143,7 +156,7 @@ export default function FinalStatusPage() {
 
         <div className="mb-6 grid gap-6 lg:grid-cols-3">
           <div className="rounded-lg border border-slate-200 p-5">
-            <h3 className="mb-3 font-bold text-slate-950">Risk language</h3>
+            <h3 className="mb-3 font-bold text-slate-950">{copy.final.riskLanguage}</h3>
             <ul className="space-y-2 pl-4 text-sm text-slate-700 marker:text-slate-300">
               {result.parsedNotice.riskLanguage.map((item) => (
                 <li className="list-disc" key={item}>{item}</li>
@@ -151,18 +164,18 @@ export default function FinalStatusPage() {
             </ul>
           </div>
           <div className="rounded-lg border border-slate-200 p-5">
-            <h3 className="mb-3 font-bold text-slate-950">Missing items</h3>
+            <h3 className="mb-3 font-bold text-slate-950">{copy.final.missingItems}</h3>
             <ul className="space-y-2 pl-4 text-sm text-slate-700 marker:text-slate-300">
               {(result.readinessCheck.missingDocuments.length > 0
                 ? result.readinessCheck.missingDocuments
-                : ["No targeted missing requirement remains in the demo packet."]
+                : [copy.common.noMissingRequirement]
               ).map((item) => (
                 <li className="list-disc" key={item}>{item}</li>
               ))}
             </ul>
           </div>
           <div className="rounded-lg border border-slate-200 p-5">
-            <h3 className="mb-3 font-bold text-slate-950">Readiness checks</h3>
+            <h3 className="mb-3 font-bold text-slate-950">{copy.final.readinessChecks}</h3>
             <ul className="space-y-2 pl-4 text-sm text-slate-700 marker:text-slate-300">
               {result.readinessCheck.checks.map((check) => (
                 <li className="list-disc" key={check}>{check}</li>
@@ -172,7 +185,7 @@ export default function FinalStatusPage() {
         </div>
 
         <p className="rounded-lg border border-amber-200/50 bg-amber-50 p-4 text-sm leading-relaxed text-amber-950">
-          This prototype interprets notices and prepares next steps. It does not determine Medicaid eligibility, provide legal advice, submit paperwork, contact agencies, store real sensitive information, or replace a human reviewer.
+          {copy.final.disclaimer}
         </p>
       </Section>
 
@@ -183,7 +196,7 @@ export default function FinalStatusPage() {
           type="button"
         >
           <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
-          Back to Packet
+          {copy.final.back}
         </button>
 
         <button
@@ -191,7 +204,7 @@ export default function FinalStatusPage() {
           onClick={handleRestart}
           type="button"
         >
-          Restart Workflow
+          {copy.final.restart}
           <RefreshCw className="h-5 w-5 transition-transform duration-500 group-hover:rotate-180" />
         </button>
       </div>

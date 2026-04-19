@@ -8,6 +8,7 @@ import type {
   SourceDocument,
   UrgencyLevel,
 } from "@/lib/types";
+import type { AppLanguage } from "@/lib/i18n/types";
 
 function findValue(content: string, labels: string[]) {
   for (const label of labels) {
@@ -70,23 +71,43 @@ function inferNoticeType(content: string): NoticeType {
   return "uploaded_text";
 }
 
-function inferRiskLanguage(content: string) {
+function inferRiskLanguage(content: string, language: AppLanguage) {
   const signals = [
-    ["Closure language found", /closure|close your case|case will close|benefits will close/i],
-    ["Termination language found", /termination|terminate|benefits will end|coverage will end/i],
-    ["Renewal action required", /renewal|redetermination|renew your coverage/i],
-    ["Failure-to-respond language found", /failure to respond|did not respond|we have not received/i],
-    ["Missing verification language found", /missing verification|proof required|send proof|provide proof/i],
-    ["Deadline language found", /deadline|due date|respond by|submit by|before/i],
-    ["Eligibility conflict language found", /inconsistent|conflicting|cannot verify|does not match/i],
+    ["closure", /closure|close your case|case will close|benefits will close/i],
+    ["termination", /termination|terminate|benefits will end|coverage will end/i],
+    ["renewal", /renewal|redetermination|renew your coverage/i],
+    ["failure", /failure to respond|did not respond|we have not received/i],
+    ["verification", /missing verification|proof required|send proof|provide proof/i],
+    ["deadline", /deadline|due date|respond by|submit by|before/i],
+    ["conflict", /inconsistent|conflicting|cannot verify|does not match/i],
   ] as const;
+  const labels: Record<AppLanguage, Record<(typeof signals)[number][0], string>> = {
+    en: {
+      closure: "Closure language found",
+      termination: "Termination language found",
+      renewal: "Renewal action required",
+      failure: "Failure-to-respond language found",
+      verification: "Missing verification language found",
+      deadline: "Deadline language found",
+      conflict: "Eligibility conflict language found",
+    },
+    es: {
+      closure: "Lenguaje de cierre encontrado",
+      termination: "Lenguaje de terminacion encontrado",
+      renewal: "Renovacion requiere accion",
+      failure: "Lenguaje de falta de respuesta encontrado",
+      verification: "Lenguaje de verificacion faltante encontrado",
+      deadline: "Lenguaje de fecha limite encontrado",
+      conflict: "Lenguaje de conflicto de elegibilidad encontrado",
+    },
+  };
 
   return signals
     .filter(([, expression]) => expression.test(content))
-    .map(([label]) => label);
+    .map(([key]) => labels[language][key]);
 }
 
-function inferMissingRequirements(content: string) {
+function inferMissingRequirements(content: string, language: AppLanguage) {
   const labeled = splitList(
     findValue(content, [
       "Missing requirements",
@@ -103,15 +124,29 @@ function inferMissingRequirements(content: string) {
   }
 
   const requirements = [
-    ["proof of income", /proof of income|income verification|pay stub|wage|earnings/i],
-    ["proof of residency", /proof of residency|residency verification|utility bill|lease|address proof/i],
-    ["completed renewal form", /incomplete renewal|renewal form|redetermination form|signature missing/i],
-    ["identity verification", /identity|photo id|identification|date of birth/i],
+    ["income", /proof of income|income verification|pay stub|wage|earnings/i],
+    ["residency", /proof of residency|residency verification|utility bill|lease|address proof/i],
+    ["renewal", /incomplete renewal|renewal form|redetermination form|signature missing/i],
+    ["identity", /identity|photo id|identification|date of birth/i],
   ] as const;
+  const labels: Record<AppLanguage, Record<(typeof requirements)[number][0], string>> = {
+    en: {
+      income: "proof of income",
+      residency: "proof of residency",
+      renewal: "completed renewal form",
+      identity: "identity verification",
+    },
+    es: {
+      income: "prueba de ingresos",
+      residency: "prueba de residencia",
+      renewal: "formulario de renovacion completo",
+      identity: "verificacion de identidad",
+    },
+  };
 
   return requirements
     .filter(([, expression]) => expression.test(content))
-    .map(([label]) => label);
+    .map(([key]) => labels[language][key]);
 }
 
 function inferProvidedDocuments(documents: SourceDocument[], combined: string) {
@@ -141,10 +176,10 @@ function inferBlockerType(content: string, missingRequirements: string[], deadli
   if (/conflicting|inconsistent|cannot verify|does not match|manual review/i.test(text)) {
     return "eligibility_inconsistency";
   }
-  if (/income|pay stub|wage|earnings/i.test(text) || missingRequirements.some((item) => /income|pay/i.test(item))) {
+  if (/income|pay stub|wage|earnings/i.test(text) || missingRequirements.some((item) => /income|pay|ingresos/i.test(item))) {
     return "missing_income_proof";
   }
-  if (/residency|address|utility bill|lease/i.test(text) || missingRequirements.some((item) => /residency|address|utility|lease/i.test(item))) {
+  if (/residency|address|utility bill|lease/i.test(text) || missingRequirements.some((item) => /residency|address|utility|lease|residencia/i.test(item))) {
     return "missing_residency_proof";
   }
   if (/incomplete renewal|renewal form|redetermination form|signature/i.test(text)) {
@@ -157,18 +192,29 @@ function inferBlockerType(content: string, missingRequirements: string[], deadli
   return "manual_review";
 }
 
-function blockerLabel(blockerType: BlockerType) {
-  const labels: Record<BlockerType, string> = {
-    missing_income_proof: "Missing proof of income",
-    missing_residency_proof: "Missing proof of residency",
-    incomplete_renewal: "Incomplete renewal paperwork",
-    eligibility_inconsistency: "Eligibility information conflict",
-    missed_deadline: "Deadline may have been missed",
-    upcoming_deadline: "Upcoming response deadline",
-    manual_review: "Unclear issue needing manual review",
+function blockerLabel(blockerType: BlockerType, language: AppLanguage) {
+  const labels: Record<AppLanguage, Record<BlockerType, string>> = {
+    en: {
+      missing_income_proof: "Missing proof of income",
+      missing_residency_proof: "Missing proof of residency",
+      incomplete_renewal: "Incomplete renewal paperwork",
+      eligibility_inconsistency: "Eligibility information conflict",
+      missed_deadline: "Deadline may have been missed",
+      upcoming_deadline: "Upcoming response deadline",
+      manual_review: "Unclear issue needing manual review",
+    },
+    es: {
+      missing_income_proof: "Falta prueba de ingresos",
+      missing_residency_proof: "Falta prueba de residencia",
+      incomplete_renewal: "Papeleo de renovacion incompleto",
+      eligibility_inconsistency: "Conflicto de informacion de elegibilidad",
+      missed_deadline: "La fecha limite puede haberse vencido",
+      upcoming_deadline: "Fecha limite de respuesta proxima",
+      manual_review: "Problema poco claro que necesita revision manual",
+    },
   };
 
-  return labels[blockerType];
+  return labels[language][blockerType];
 }
 
 function inferUrgency(content: string, blockerType: BlockerType): UrgencyLevel {
@@ -198,9 +244,38 @@ function inferCaseStatus(blockerType: BlockerType, missingRequirements: string[]
   return "blocker_identified";
 }
 
-function inferIssueExplanation(noticeType: NoticeType, blockerType: BlockerType, deadlineDate?: string) {
+function inferIssueExplanation(
+  noticeType: NoticeType,
+  blockerType: BlockerType,
+  language: AppLanguage,
+  deadlineDate?: string,
+) {
   const noticeCopy = noticeType.replaceAll("_", " ");
-  const dueCopy = deadlineDate ? ` by ${deadlineDate}` : "";
+  const dueCopy = deadlineDate
+    ? language === "es"
+      ? ` antes de ${deadlineDate}`
+      : ` by ${deadlineDate}`
+    : "";
+
+  if (language === "es") {
+    if (blockerType === "missing_income_proof") {
+      return `La cobertura esta en riesgo porque este aviso de ${noticeCopy} pide prueba de ingresos${dueCopy}.`;
+    }
+    if (blockerType === "missing_residency_proof") {
+      return `La cobertura esta en riesgo porque este aviso de ${noticeCopy} pide prueba de residencia${dueCopy}.`;
+    }
+    if (blockerType === "incomplete_renewal") {
+      return `La cobertura esta en riesgo porque el papeleo de renovacion parece incompleto${dueCopy}.`;
+    }
+    if (blockerType === "eligibility_inconsistency") {
+      return "El aviso incluye informacion de elegibilidad en conflicto, asi que una persona navegadora debe revisarlo antes del envio.";
+    }
+    if (blockerType === "missed_deadline") {
+      return "El aviso sugiere que una fecha limite ya pudo haber pasado, asi que el caso debe escalarse para revision de apelacion o reinstalacion.";
+    }
+
+    return `El aviso incluye una fecha limite de accion${dueCopy}, pero se debe confirmar el requisito exacto.`;
+  }
 
   if (blockerType === "missing_income_proof") {
     return `Coverage is at risk because this ${noticeCopy} asks for proof of income${dueCopy}.`;
@@ -221,17 +296,26 @@ function inferIssueExplanation(noticeType: NoticeType, blockerType: BlockerType,
   return `The notice includes an action deadline${dueCopy}, but the exact requirement should be confirmed.`;
 }
 
-function summarizeDocument(content: string, noticeType: NoticeType, riskLanguage: string[]) {
+function summarizeDocument(
+  content: string,
+  noticeType: NoticeType,
+  riskLanguage: string[],
+  language: AppLanguage,
+) {
   const firstLine = content
     .split(/\n+/)
     .map((line) => line.trim())
     .find(Boolean);
 
   if (firstLine && firstLine.length <= 120) {
-    return `${firstLine}. ${riskLanguage.length} risk signal${riskLanguage.length === 1 ? "" : "s"} found.`;
+    return language === "es"
+      ? `${firstLine}. ${riskLanguage.length} senal${riskLanguage.length === 1 ? "" : "es"} de riesgo encontrada${riskLanguage.length === 1 ? "" : "s"}.`
+      : `${firstLine}. ${riskLanguage.length} risk signal${riskLanguage.length === 1 ? "" : "s"} found.`;
   }
 
-  return `Medicaid ${noticeType.replaceAll("_", " ")} text reviewed locally. ${riskLanguage.length} risk signal${riskLanguage.length === 1 ? "" : "s"} found.`;
+  return language === "es"
+    ? `Texto de Medicaid (${noticeType.replaceAll("_", " ")}) revisado localmente. ${riskLanguage.length} senal${riskLanguage.length === 1 ? "" : "es"} de riesgo encontrada${riskLanguage.length === 1 ? "" : "s"}.`
+    : `Medicaid ${noticeType.replaceAll("_", " ")} text reviewed locally. ${riskLanguage.length} risk signal${riskLanguage.length === 1 ? "" : "s"} found.`;
 }
 
 function getConfidence(parsedFieldCount: number): ParsedNotice["extractionConfidence"] {
@@ -244,6 +328,7 @@ export function parseDocuments(
   documents: SourceDocument[],
   preferences: CommunicationPreferences = {},
   sourceKind: DocumentSourceKind = "sample",
+  language: AppLanguage = "en",
 ): ParsedNotice {
   const combined = documents.map((document) => document.content).join("\n");
   const patientName = findValue(combined, ["Patient", "Member", "Client"]);
@@ -255,8 +340,8 @@ export function parseDocuments(
   ]);
   const noticeType = inferNoticeType(combined);
   const deadlineDate = findDate(combined);
-  const riskLanguage = inferRiskLanguage(combined);
-  const missingRequirements = inferMissingRequirements(combined);
+  const riskLanguage = inferRiskLanguage(combined, language);
+  const missingRequirements = inferMissingRequirements(combined, language);
   const providedDocuments = inferProvidedDocuments(documents, combined);
   const blockerType = inferBlockerType(combined, missingRequirements, deadlineDate);
   const urgency = inferUrgency(combined, blockerType);
@@ -287,11 +372,16 @@ export function parseDocuments(
     deadlineDate,
     riskLanguage,
     blockerType,
-    blockerLabel: blockerLabel(blockerType),
+    blockerLabel: blockerLabel(blockerType, language),
     missingRequirements,
     providedDocuments,
-    documentSummary: summarizeDocument(combined, noticeType, riskLanguage),
-    issueExplanation: inferIssueExplanation(noticeType, blockerType, deadlineDate),
+    documentSummary: summarizeDocument(combined, noticeType, riskLanguage, language),
+    issueExplanation: inferIssueExplanation(
+      noticeType,
+      blockerType,
+      language,
+      deadlineDate,
+    ),
     extractionConfidence: getConfidence(parsedFieldCount),
     sourceKind,
     urgency,

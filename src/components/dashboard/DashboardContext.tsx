@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { useLanguage } from "@/components/i18n/LanguageProvider";
 import { getSampleCases } from "@/lib/data";
 import { parseDocuments } from "@/lib/domain/parsing";
 import {
@@ -24,6 +25,7 @@ import type {
   SampleCase,
   SourceDocument,
 } from "@/lib/types";
+import type { AppLanguage } from "@/lib/i18n/types";
 
 export type WorkflowStatus = "idle" | "running" | "complete";
 export type IntakeMode = "sample" | "upload";
@@ -92,8 +94,9 @@ function parseForReview(
   documents: SourceDocument[],
   preferences: CommunicationPreferences,
   sourceKind: DocumentSourceKind,
+  language: AppLanguage,
 ) {
-  return parseDocuments(documents, preferences, sourceKind);
+  return parseDocuments(documents, preferences, sourceKind, language);
 }
 
 function mergePreferencesFromParsed(
@@ -154,6 +157,7 @@ interface DashboardContextType {
 const DashboardContext = createContext<DashboardContextType | undefined>(undefined);
 
 export function DashboardProvider({ children }: { children: React.ReactNode }) {
+  const { language } = useLanguage();
   const sampleCases = useMemo(() => getSampleCases(), []);
 
   const [mode, setModeState] = useState<IntakeMode>(getStoredMode);
@@ -179,6 +183,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
         [buildUploadedDocument(storedText, "pasted")],
         storedPreferences,
         "pasted",
+        language,
       );
     }
     if (sampleCases[0]) {
@@ -186,6 +191,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
         [sampleCases[0].notice, ...sampleCases[0].supportingDocuments],
         sampleCases[0].preferences,
         "sample",
+        language,
       );
     }
     return undefined;
@@ -230,6 +236,23 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
     }
   }, [uploadText]);
 
+  useEffect(() => {
+    if (activeDocuments.length === 0) {
+      setReviewNotice(undefined);
+      return;
+    }
+
+    const sourceKind = mode === "sample" ? "sample" : uploadSourceKind;
+    const nextPreferences = mode === "sample" ? selectedCase.preferences : preferences;
+    setReviewNotice(parseForReview(activeDocuments, nextPreferences, sourceKind, language));
+    setResult(undefined);
+    setStatus("idle");
+    setActiveStep(undefined);
+    setLiveGuidanceStatus("idle");
+    setLiveGuidance(undefined);
+    setLiveGuidanceError(undefined);
+  }, [language]);
+
   function resetRunState() {
     setResult(undefined);
     setStatus("idle");
@@ -249,7 +272,12 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
     sourceKind: Extract<DocumentSourceKind, "pasted" | "txt_upload" | "pdf_ocr" | "image_ocr">,
   ) {
     const parsed = text.trim()
-      ? parseForReview([buildUploadedDocument(text, sourceKind)], preferences, sourceKind)
+      ? parseForReview(
+          [buildUploadedDocument(text, sourceKind)],
+          preferences,
+          sourceKind,
+          language,
+        )
       : undefined;
 
     setUploadText(text);
@@ -269,6 +297,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
         [selectedCase.notice, ...selectedCase.supportingDocuments],
         selectedCase.preferences,
         "sample",
+        language,
       );
       setPreferences(mergePreferencesFromParsed(parsed, selectedCase.preferences));
       setReviewNotice(parsed);
@@ -280,6 +309,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
         [buildUploadedDocument(uploadText, uploadSourceKind)],
         preferences,
         uploadSourceKind,
+        language,
       );
       setReviewNotice(parsed);
     } else {
@@ -293,6 +323,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
       [nextCase.notice, ...nextCase.supportingDocuments],
       nextCase.preferences,
       "sample",
+      language,
     );
     setSelectedCaseId(id);
     setPreferences(mergePreferencesFromParsed(parsed, nextCase.preferences));
@@ -442,6 +473,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
       documents: activeDocuments,
       reviewedNotice: reviewNotice,
       preferences: runPreferences,
+      language,
     });
 
     setResult(runResult);

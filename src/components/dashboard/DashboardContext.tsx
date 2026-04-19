@@ -22,6 +22,7 @@ import type {
   LiveGuidanceResult,
   LiveGuidanceRequest,
   ParsedNotice,
+  ReasoningEvent,
   SampleCase,
   SourceDocument,
 } from "@/lib/types";
@@ -151,7 +152,8 @@ interface DashboardContextType {
   runWorkflow: () => Promise<void>;
   verifyLiveGuidance: () => Promise<void>;
   activeDocuments: SourceDocument[];
-  triggerNextStep: (stepName: string, data?: Record<string, unknown>) => Promise<void>;
+  traceEvents: ReasoningEvent[];
+  triggerNextStep: (stepName: string, message: string, data?: Record<string, unknown>) => Promise<void>;
 }
 
 const DashboardContext = createContext<DashboardContextType | undefined>(undefined);
@@ -204,6 +206,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
     useState<LiveGuidanceStatus>("idle");
   const [liveGuidance, setLiveGuidance] = useState<LiveGuidanceResult>();
   const [liveGuidanceError, setLiveGuidanceError] = useState<string>();
+  const [traceEvents, setTraceEvents] = useState<ReasoningEvent[]>([]);
 
   const selectedCase = useMemo(
     () => sampleCases.find((sampleCase) => sampleCase.id === selectedCaseId) ?? sampleCases[0],
@@ -260,6 +263,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
     setLiveGuidanceStatus("idle");
     setLiveGuidance(undefined);
     setLiveGuidanceError(undefined);
+    setTraceEvents([]);
   }
 
   function setFileStatus(message: string, tone: FileMessageTone = "info") {
@@ -466,6 +470,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
 
     for (const step of workflowSteps) {
       setActiveStep(step.id);
+      await triggerNextStep(step.id, step.description);
       await wait(step.id === "outcome" ? 320 : 460);
     }
 
@@ -539,8 +544,20 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  async function triggerNextStep(stepName: string, data?: Record<string, unknown>) {
+  async function triggerNextStep(stepName: string, message: string, data?: Record<string, unknown>) {
+    const event: ReasoningEvent = {
+      id: crypto.randomUUID(),
+      timestamp: new Date().toISOString(),
+      stepName,
+      message,
+      data,
+    };
+    
+    setTraceEvents((prev) => [...prev, event]);
     console.log(`[Event Trigger] notice-rescue/${stepName}`, data || {});
+    
+    // Tinyfish Event Orchestration Placeholder
+    // fetch("/api/tinyfish/events", { method: "POST", body: JSON.stringify(event) }).catch(() => {});
   }
 
   return (
@@ -572,6 +589,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
         runWorkflow,
         verifyLiveGuidance,
         activeDocuments,
+        traceEvents,
         triggerNextStep,
       }}
     >

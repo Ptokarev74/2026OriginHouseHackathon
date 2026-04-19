@@ -181,3 +181,11 @@ export type LiveGuidanceResult = {
   sources: LiveGuidanceSource[];
   errors: string[];
 };
+
+export type ReasoningEvent = {
+  id: string;
+  timestamp: string;
+  stepName: string;
+  message: string;
+  data?: Record<string, unknown>;
+};

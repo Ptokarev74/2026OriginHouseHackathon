@@ -80,7 +80,7 @@ export default function NoticeAnalysisPage() {
   }
 
   async function handleNextStep() {
-    await triggerNextStep("notice-analysis-completed", { reviewNotice });
+    await triggerNextStep("notice-analysis-completed", "Analyzed notice coverage.", { reviewNotice });
     router.push("/dashboard/rescue-path");
   }
 

@@ -23,7 +23,7 @@ export default function PacketPreparationPage() {
   }, [result, status, router]);
 
   async function handleNextStep() {
-    await triggerNextStep("packet-preparation-completed", {
+    await triggerNextStep("packet-preparation-completed", "Generated submission packet artifacts.", {
       artifacts: result?.artifacts.map((artifact) => artifact.kind),
     });
     router.push("/dashboard/final-status");

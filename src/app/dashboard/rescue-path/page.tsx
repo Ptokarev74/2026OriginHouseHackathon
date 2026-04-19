@@ -44,7 +44,7 @@ export default function RescuePathPage() {
   }, [reviewNotice, router]);
 
   async function handleNextStep() {
-    await triggerNextStep("rescue-path-completed", {
+    await triggerNextStep("rescue-path-completed", "Calculated optimal rescue path.", {
       status: result?.rescuePath.status,
       blocker: result?.blockerAssessment.blockerType,
     });

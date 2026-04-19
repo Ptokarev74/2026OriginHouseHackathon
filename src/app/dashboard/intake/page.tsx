@@ -65,7 +65,7 @@ export default function IntakePage() {
     uploadSourceKind === "pdf_ocr" || uploadSourceKind === "image_ocr";
 
   async function handleNextStep() {
-    await triggerNextStep("intake-completed", {
+    await triggerNextStep("intake-completed", "Completed patient intake.", {
       mode,
       selectedCaseId: selectedCase?.id,
     });

@@ -26,7 +26,7 @@ export default function FinalStatusPage() {
   }, [result, status, router]);
 
   async function handleRestart() {
-    await triggerNextStep("final-status-completed", {
+    await triggerNextStep("final-status-completed", "Reached final rescue status.", {
       finalStatus: result?.finalStatus,
     });
     setMode("sample");

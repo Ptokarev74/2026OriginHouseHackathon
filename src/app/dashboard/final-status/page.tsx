@@ -2,9 +2,9 @@
 
 import React, { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useDashboard } from "@/components/dashboard/DashboardContext";
-import { Section, Badge } from "@/components/dashboard/ui";
 import { ArrowLeft, Printer, RefreshCw } from "lucide-react";
+import { useDashboard } from "@/components/dashboard/DashboardContext";
+import { Badge, Section } from "@/components/dashboard/ui";
 
 export default function FinalStatusPage() {
   const router = useRouter();
@@ -16,163 +16,183 @@ export default function FinalStatusPage() {
     }
   }, [result, status, router]);
 
-  async function handleNextStep() {
-    await triggerNextStep("final-status-completed", { finalStatus: result?.finalStatus });
-    // Keep it here or restart
+  async function handleRestart() {
+    await triggerNextStep("final-status-completed", {
+      finalStatus: result?.finalStatus,
+    });
     setMode("sample");
     router.push("/dashboard/intake");
   }
 
   if (!result) return null;
 
-  const topProviders = result.rankedProviders.slice(0, 3);
-  const provider = result.selectedProvider;
+  const statusTone = result.finalStatus === "escalation_needed"
+    ? "danger"
+    : result.finalStatus === "ready_to_submit"
+      ? "good"
+      : "warn";
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="border-b border-slate-200 pb-4 mb-6 flex justify-between items-end">
+      <div className="mb-6 flex items-end justify-between border-b border-slate-200 pb-4">
         <div>
           <h1 className="text-3xl font-bold text-slate-950">Final Status</h1>
-          <p className="text-slate-600 mt-2">
-            Review the final suggested next steps and a print-ready summary of your care continuity plan.
+          <p className="mt-2 text-slate-600">
+            Review the rescue result and print a case summary for follow-up.
           </p>
         </div>
         <button
-          onClick={() => window.print()}
           className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-5 py-3 font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+          onClick={() => window.print()}
+          type="button"
         >
-          <Printer className="w-5 h-5" />
+          <Printer className="h-5 w-5" />
           Print Summary
         </button>
       </div>
 
       <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-6 shadow-sm">
-        <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <div>
             <div className="text-xs font-semibold uppercase tracking-wide text-emerald-800">
-              Suggested next steps
+              Rescue outcome
             </div>
             <h2 className="mt-1 text-3xl font-bold text-emerald-950">
-              {result.finalStatus === "next_steps_ready"
-                ? "Summary ready for verification"
-                : "Manual review recommended"}
+              {result.finalStatus === "ready_to_submit"
+                ? "Ready to submit"
+                : result.finalStatus === "escalation_needed"
+                  ? "Escalation needed"
+                  : "Awaiting documents"}
             </h2>
           </div>
-          <Badge tone={result.finalStatus === "next_steps_ready" ? "good" : "warn"}>
-            {result.finalStatus.replaceAll("_", " ").toUpperCase()}
-          </Badge>
+          <Badge tone={statusTone}>{result.finalStatus.replaceAll("_", " ").toUpperCase()}</Badge>
         </div>
-        
-        <p className="text-slate-800 leading-relaxed text-lg">{result.outcomeSummary}</p>
-        
-        {provider && (
-          <div className="mt-5 rounded-lg bg-white/90 border border-emerald-100 p-5 shadow-sm">
-            <div className="font-bold text-slate-950 text-lg">
-              Top Provider Option: <span className="text-teal-700">{provider.name}</span>
-            </div>
-            <p className="mt-2 text-sm text-slate-600 leading-relaxed">
-              Ranking is based on local demo data evaluating specialty ({provider.specialty}), distance ({provider.distanceMiles.toFixed(1)}mi) and availability. 
-              Always confirm plan participation, new-patient status, costs, and availability directly with the provider office before booking.
-            </p>
-          </div>
-        )}
-        
+
+        <p className="text-lg leading-relaxed text-slate-800">{result.outcomeSummary}</p>
+
         <div className="mt-6">
-          <h3 className="font-bold text-emerald-950 mb-3 text-lg">Next steps to take</h3>
+          <h3 className="mb-3 text-lg font-bold text-emerald-950">Next steps</h3>
           <ul className="space-y-3">
-            {result.patientInstructions.map((instruction, idx) => (
-              <li className="flex gap-3 items-start bg-white/80 p-4 rounded-lg border border-emerald-100/50 shadow-sm" key={idx}>
-                <div className="flex-shrink-0 w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-sm font-bold mt-0.5">
-                  {idx + 1}
+            {result.patientInstructions.map((instruction, index) => (
+              <li
+                className="flex items-start gap-3 rounded-lg border border-emerald-100/50 bg-white/80 p-4 shadow-sm"
+                key={instruction}
+              >
+                <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-sm font-bold text-emerald-700">
+                  {index + 1}
                 </div>
-                <span className="text-slate-800 leading-relaxed">{instruction}</span>
+                <span className="leading-relaxed text-slate-800">{instruction}</span>
               </li>
             ))}
           </ul>
         </div>
       </div>
 
-      <Section eyebrow="Reference File" title="Printable Summary View" className="print-summary">
-        <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
+      <Section eyebrow="Reference File" title="Printable rescue summary" className="print-summary">
+        <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-bold text-slate-950">Medicare paperwork review</h2>
+            <h2 className="text-2xl font-bold text-slate-950">
+              Medicaid notice rescue summary
+            </h2>
+            <p className="mt-2 text-sm leading-6 text-slate-600">
+              This summary is generated from fictional or locally pasted text for a frontend demo.
+            </p>
           </div>
           <Badge tone="neutral">Informational only</Badge>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2 mb-6">
-          <div className="rounded-lg border border-slate-200 p-5 bg-slate-50">
-            <h3 className="font-bold text-slate-950 border-b border-slate-200 pb-2 mb-3">Document summary</h3>
+        <div className="mb-6 grid gap-6 md:grid-cols-2">
+          <div className="rounded-lg border border-slate-200 bg-slate-50 p-5">
+            <h3 className="mb-3 border-b border-slate-200 pb-2 font-bold text-slate-950">
+              Notice summary
+            </h3>
             <p className="text-sm leading-6 text-slate-700">
-              {result.parsedCase.documentSummary}
+              {result.parsedNotice.documentSummary}
             </p>
           </div>
-          <div className="rounded-lg border border-slate-200 p-5 bg-slate-50">
-            <h3 className="font-bold text-slate-950 border-b border-slate-200 pb-2 mb-3">Reviewed details</h3>
+          <div className="rounded-lg border border-slate-200 bg-slate-50 p-5">
+            <h3 className="mb-3 border-b border-slate-200 pb-2 font-bold text-slate-950">
+              Reviewed details
+            </h3>
             <dl className="space-y-2 text-sm text-slate-700">
-              <div className="flex justify-between"><dt className="font-semibold text-slate-500">Coverage:</dt><dd className="text-right font-medium">{result.parsedCase.medicareCoverageType}</dd></div>
-              <div className="flex justify-between"><dt className="font-semibold text-slate-500">Date:</dt><dd className="text-right font-medium">{result.parsedCase.deadlineDate ?? "Verify manually"}</dd></div>
-              <div className="flex justify-between"><dt className="font-semibold text-slate-500">Specialty:</dt><dd className="text-right font-medium">{result.parsedCase.specialtyNeeded}</dd></div>
-              <div className="flex justify-between"><dt className="font-semibold text-slate-500">ZIP:</dt><dd className="text-right font-medium">{result.parsedCase.locationZip}</dd></div>
+              <div className="flex justify-between gap-4">
+                <dt className="font-semibold text-slate-500">Notice:</dt>
+                <dd className="text-right font-medium">
+                  {result.parsedNotice.noticeType.replaceAll("_", " ")}
+                </dd>
+              </div>
+              <div className="flex justify-between gap-4">
+                <dt className="font-semibold text-slate-500">Deadline:</dt>
+                <dd className="text-right font-medium">
+                  {result.parsedNotice.deadlineDate ?? "Verify manually"}
+                </dd>
+              </div>
+              <div className="flex justify-between gap-4">
+                <dt className="font-semibold text-slate-500">Blocker:</dt>
+                <dd className="text-right font-medium">{result.blockerAssessment.label}</dd>
+              </div>
+              <div className="flex justify-between gap-4">
+                <dt className="font-semibold text-slate-500">Status:</dt>
+                <dd className="text-right font-medium">
+                  {result.finalStatus.replaceAll("_", " ")}
+                </dd>
+              </div>
             </dl>
           </div>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-3 mb-6">
+        <div className="mb-6 grid gap-6 lg:grid-cols-3">
           <div className="rounded-lg border border-slate-200 p-5">
-            <h3 className="font-bold text-slate-950 mb-3">Possible issue flags</h3>
-            <ul className="space-y-2 text-sm text-slate-700 list-disc pl-4 marker:text-slate-300">
-              {result.coverageAssessment.findings.slice(0, 5).map((finding) => (
-                <li key={finding}>{finding}</li>
+            <h3 className="mb-3 font-bold text-slate-950">Risk language</h3>
+            <ul className="space-y-2 pl-4 text-sm text-slate-700 marker:text-slate-300">
+              {result.parsedNotice.riskLanguage.map((item) => (
+                <li className="list-disc" key={item}>{item}</li>
               ))}
             </ul>
           </div>
           <div className="rounded-lg border border-slate-200 p-5">
-            <h3 className="font-bold text-slate-950 mb-3">Top provider options</h3>
-            <ul className="space-y-3 text-sm text-slate-700">
-              {topProviders.length > 0 ? (
-                topProviders.map((prov) => (
-                  <li key={prov.id} className="bg-slate-50 p-2 rounded border border-slate-100">
-                    <div className="font-semibold text-slate-900">{prov.name}</div>
-                    <div className="text-xs text-slate-500 mt-1">Score: {prov.score}/100 • {prov.distanceMiles.toFixed(1)} mi</div>
-                  </li>
-                ))
-              ) : (
-                <li className="text-slate-500 italic">No local provider match in the demo dataset.</li>
-              )}
+            <h3 className="mb-3 font-bold text-slate-950">Missing items</h3>
+            <ul className="space-y-2 pl-4 text-sm text-slate-700 marker:text-slate-300">
+              {(result.readinessCheck.missingDocuments.length > 0
+                ? result.readinessCheck.missingDocuments
+                : ["No targeted missing requirement remains in the demo packet."]
+              ).map((item) => (
+                <li className="list-disc" key={item}>{item}</li>
+              ))}
             </ul>
           </div>
           <div className="rounded-lg border border-slate-200 p-5">
-            <h3 className="font-bold text-slate-950 mb-3">Verification Questions</h3>
-            <ul className="space-y-2 text-sm text-slate-700 list-disc pl-4 marker:text-slate-300">
-              {result.coverageAssessment.verificationQuestions.map((q) => (
-                <li key={q}>{q}</li>
+            <h3 className="mb-3 font-bold text-slate-950">Readiness checks</h3>
+            <ul className="space-y-2 pl-4 text-sm text-slate-700 marker:text-slate-300">
+              {result.readinessCheck.checks.map((check) => (
+                <li className="list-disc" key={check}>{check}</li>
               ))}
             </ul>
           </div>
         </div>
 
-        <p className="rounded-lg bg-amber-50 border border-amber-200/50 p-4 text-sm leading-relaxed text-amber-950 flex gap-3 items-start">
-          <span className="text-amber-500 mt-0.5">ℹ️</span>
-          This summary is from a frontend-only prototype. It does not determine Medicare eligibility, benefits, plan status, provider acceptance, or appointment availability. Confirm details directly before taking action.
+        <p className="rounded-lg border border-amber-200/50 bg-amber-50 p-4 text-sm leading-relaxed text-amber-950">
+          This prototype interprets notices and prepares next steps. It does not determine Medicaid eligibility, provide legal advice, submit paperwork, contact agencies, store real sensitive information, or replace a human reviewer.
         </p>
       </Section>
 
-      <div className="pt-6 border-t border-slate-200 flex justify-between items-center no-print">
+      <div className="no-print flex items-center justify-between border-t border-slate-200 pt-6">
         <button
-          onClick={() => router.push("/dashboard/action-execution")}
           className="group inline-flex min-h-12 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-5 py-3 font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+          onClick={() => router.push("/dashboard/action-execution")}
+          type="button"
         >
-          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-          Back to Timeline
+          <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
+          Back to Packet
         </button>
 
         <button
-          onClick={handleNextStep}
           className="group inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-slate-900 px-6 py-3 font-semibold text-white shadow-sm transition hover:bg-slate-800"
+          onClick={handleRestart}
+          type="button"
         >
           Restart Workflow
-          <RefreshCw className="w-5 h-5 group-hover:rotate-180 transition-transform duration-500" />
+          <RefreshCw className="h-5 w-5 transition-transform duration-500 group-hover:rotate-180" />
         </button>
       </div>
     </div>

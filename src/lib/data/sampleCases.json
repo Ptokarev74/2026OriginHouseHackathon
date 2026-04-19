@@ -1,39 +1,71 @@
 [
   {
-    "id": "case-maria",
-    "label": "Maria Chen - Medicare Advantage payment notice",
-    "description": "Medicare Advantage member worried about a premium/payment notice, a near deadline, Spanish preference, and cardiology follow-up.",
-    "noticeId": "notice-001",
-    "referralNoteId": "referral-001",
+    "id": "case-income-renewal",
+    "label": "Alicia Rivera - renewal warning, income proof missing",
+    "description": "A Medicaid renewal notice says coverage may close unless proof of income is submitted before the deadline.",
     "preferences": {
-      "maxDistanceMiles": 20,
+      "languagePreference": "English",
+      "contactMethod": "SMS"
+    },
+    "notice": {
+      "id": "notice-income-renewal",
+      "title": "Medicaid Renewal Notice - Alicia Rivera",
+      "documentType": "renewal_notice",
+      "content": "Medicaid Renewal Notice\nPatient: Alicia Rivera\nMedicaid program: Family Medicaid\nNotice type: Renewal warning\nDeadline: 2026-04-23\nIssue: We have not received proof of income for your renewal. Your Medicaid coverage may close if proof is not provided before the deadline.\nMissing requirements: proof of income\nRequested documents: most recent pay stubs, employer letter, or income statement\nRisk language: coverage may close; failure to respond; missing verification\nLanguage preference: English\nContact method: SMS\nNotice: This is a request for information, not a final eligibility determination."
+    },
+    "supportingDocuments": [
+      {
+        "id": "case-status-income",
+        "title": "Case Status Letter",
+        "documentType": "case_status_letter",
+        "content": "Case Status Letter\nPatient: Alicia Rivera\nStatus: Renewal pending\nDocuments on file: identity verification, lease\nDocuments needed: proof of income\nCase note: Renewal packet is otherwise complete."
+      }
+    ]
+  },
+  {
+    "id": "case-residency-action",
+    "label": "Malik Johnson - action required, residency proof missing",
+    "description": "An action-required letter says residency cannot be verified and asks for proof of address before benefits close.",
+    "preferences": {
+      "languagePreference": "English",
+      "contactMethod": "Email"
+    },
+    "notice": {
+      "id": "notice-residency-action",
+      "title": "Medicaid Action Required Notice - Malik Johnson",
+      "documentType": "closure_notice",
+      "content": "Action Required Notice\nPatient: Malik Johnson\nMedicaid program: Adult Medicaid\nNotice type: Closure warning\nRespond by: 2026-05-01\nIssue: We cannot verify your current address. Your Medicaid case will close if proof of residency is not received by the date above.\nMissing requirements: proof of residency\nRequested documents: lease, utility bill, shelter letter, or official mail with current address\nRisk language: case will close; proof required; missing verification\nLanguage preference: English\nContact method: Email"
+    },
+    "supportingDocuments": [
+      {
+        "id": "uploaded-identity",
+        "title": "Photo ID already uploaded",
+        "documentType": "verification_document",
+        "content": "Provided document\nPatient: Malik Johnson\nDocument: photo identification\nDocuments attached: photo ID\nNote: This does not verify current residency."
+      }
+    ]
+  },
+  {
+    "id": "case-conflict-escalation",
+    "label": "Rosa Martinez - conflicting income data, deadline passed",
+    "description": "A termination notice and status letter conflict on income data, and the listed deadline has already passed.",
+    "preferences": {
       "languagePreference": "Spanish",
-      "transportationNeeded": true
-    }
-  },
-  {
-    "id": "case-robert",
-    "label": "Robert Ellis - Original Medicare provider confusion",
-    "description": "Original Medicare user trying to confirm whether a pulmonology provider accepts Medicare after a discharge follow-up note.",
-    "noticeId": "notice-002",
-    "referralNoteId": "referral-002",
-    "preferences": {
-      "maxDistanceMiles": 18,
-      "needsTelehealth": true,
-      "languagePreference": "English",
-      "transportationNeeded": false
-    }
-  },
-  {
-    "id": "case-denise",
-    "label": "Denise Walker - dual-eligible care coordination",
-    "description": "Dual-eligible patient with network and transportation concerns before a behavioral health follow-up.",
-    "noticeId": "notice-003",
-    "referralNoteId": "referral-003",
-    "preferences": {
-      "maxDistanceMiles": 15,
-      "languagePreference": "English",
-      "transportationNeeded": true
-    }
+      "contactMethod": "Phone"
+    },
+    "notice": {
+      "id": "notice-conflict-termination",
+      "title": "Medicaid Termination Notice - Rosa Martinez",
+      "documentType": "closure_notice",
+      "content": "Medicaid Termination Notice\nPatient: Rosa Martinez\nMedicaid program: Parent and Caretaker Relative Medicaid\nNotice type: Termination\nCoverage end date: 2026-04-15\nIssue: Income information in the renewal does not match wage data received from another source. The deadline passed and coverage is scheduled to end.\nMissing requirements: income clarification, proof of income\nRisk language: coverage will end; deadline passed; conflicting eligibility information\nLanguage preference: Spanish\nContact method: Phone"
+    },
+    "supportingDocuments": [
+      {
+        "id": "case-status-conflict",
+        "title": "Case Status Letter",
+        "documentType": "case_status_letter",
+        "content": "Case Status Letter\nPatient: Rosa Martinez\nStatus: Manual review needed\nIssue: Conflicting income records. Case notes say a pay stub was uploaded but not linked to the renewal.\nProvided documents: pay stub uploaded on 2026-04-10\nRecommendation: escalate for navigator review."
+      }
+    ]
   }
 ]

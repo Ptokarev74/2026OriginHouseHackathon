@@ -3,13 +3,13 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { 
-  FileText, 
-  Search, 
-  Stethoscope, 
-  Activity, 
-  CheckCircle2, 
-  ShieldAlert 
+import {
+  Activity,
+  CheckCircle2,
+  FileSearch,
+  FileText,
+  PackageCheck,
+  ShieldAlert,
 } from "lucide-react";
 import { DashboardProvider, useDashboard } from "@/components/dashboard/DashboardContext";
 import { ReasoningTrace } from "@/components/dashboard/ReasoningTrace";
@@ -17,9 +17,9 @@ import { classNames } from "@/components/dashboard/ui";
 
 const NAV_STEPS = [
   { name: "Intake", href: "/dashboard/intake", icon: FileText },
-  { name: "Coverage Analysis", href: "/dashboard/coverage-analysis", icon: Search },
-  { name: "Provider Matching", href: "/dashboard/provider-matching", icon: Stethoscope },
-  { name: "Action Execution", href: "/dashboard/action-execution", icon: Activity },
+  { name: "Notice Analysis", href: "/dashboard/coverage-analysis", icon: FileSearch },
+  { name: "Rescue Path", href: "/dashboard/rescue-path", icon: ShieldAlert },
+  { name: "Packet Prep", href: "/dashboard/action-execution", icon: PackageCheck },
   { name: "Final Status", href: "/dashboard/final-status", icon: CheckCircle2 },
 ];
 
@@ -28,53 +28,62 @@ function Sidebar() {
   const { status } = useDashboard();
 
   return (
-    <nav className="w-64 bg-slate-900 border-r border-slate-800 text-slate-300 flex flex-col hidden lg:flex">
-      <div className="p-6 border-b border-slate-800">
-        <div className="flex items-center gap-2 text-teal-400 mb-2">
-          <ShieldAlert className="w-6 h-6" />
-          <h1 className="font-bold text-lg text-white">Rescue Ops</h1>
+    <nav className="hidden w-64 flex-col border-r border-slate-800 bg-slate-950 text-slate-300 lg:flex">
+      <div className="border-b border-slate-800 p-6">
+        <div className="mb-2 flex items-center gap-2 text-emerald-300">
+          <ShieldAlert className="h-6 w-6" />
+          <h1 className="text-lg font-bold text-white">Notice-to-Rescue</h1>
         </div>
-        <p className="text-xs text-slate-500 font-medium uppercase tracking-wide">
-          Coverage-to-Care
+        <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+          Medicaid notice agent
         </p>
       </div>
 
-      <div className="flex-1 overflow-y-auto py-6 px-4 space-y-1">
+      <div className="flex-1 space-y-1 overflow-y-auto px-4 py-6">
         {NAV_STEPS.map((step, index) => {
           const isActive = pathname === step.href;
           const Icon = step.icon;
-          
+
           return (
             <Link
-              key={step.name}
-              href={step.href}
               className={classNames(
-                "group flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg transition-colors",
-                isActive 
-                  ? "bg-teal-500/10 text-teal-300"
-                  : "hover:bg-slate-800 hover:text-white"
+                "group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                isActive
+                  ? "bg-emerald-400/10 text-emerald-200"
+                  : "hover:bg-slate-800 hover:text-white",
               )}
+              href={step.href}
+              key={step.name}
             >
-              <Icon 
+              <Icon
                 className={classNames(
-                  "w-5 h-5 flex-shrink-0",
-                  isActive ? "text-teal-400" : "text-slate-500 group-hover:text-slate-300"
-                )} 
+                  "h-5 w-5 shrink-0",
+                  isActive
+                    ? "text-emerald-300"
+                    : "text-slate-500 group-hover:text-slate-300",
+                )}
               />
-              <span className="truncate">{index + 1}. {step.name}</span>
+              <span className="truncate">
+                {index + 1}. {step.name}
+              </span>
             </Link>
           );
         })}
       </div>
 
-      <div className="p-4 border-t border-slate-800">
-        <div className="text-xs text-slate-500 flex items-center justify-between">
-          <span>Workflow Status:</span>
-          <span className={classNames(
-            "font-semibold",
-            status === "idle" ? "text-slate-400" :
-            status === "running" ? "text-sky-400 animate-pulse" : "text-emerald-400"
-          )}>
+      <div className="border-t border-slate-800 p-4">
+        <div className="flex items-center justify-between text-xs text-slate-500">
+          <span>Agent status</span>
+          <span
+            className={classNames(
+              "font-semibold",
+              status === "idle"
+                ? "text-slate-400"
+                : status === "running"
+                  ? "animate-pulse text-sky-400"
+                  : "text-emerald-400",
+            )}
+          >
             {status.toUpperCase()}
           </span>
         </div>
@@ -86,30 +95,24 @@ function Sidebar() {
 export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <DashboardProvider>
-      <div className="flex h-screen bg-[#f7f9f6] overflow-hidden text-slate-950 font-sans">
+      <div className="flex h-screen overflow-hidden bg-[#f6f8fb] font-sans text-slate-950">
         <Sidebar />
-        
-        {/* Main Content Area */}
-        <main className="flex-1 flex flex-col overflow-hidden relative">
-          {/* Topbar for mobile */}
-          <div className="lg:hidden bg-slate-900 text-white p-4 flex items-center justify-between border-b border-slate-800">
-            <div className="flex items-center gap-2 text-teal-400">
-              <ShieldAlert className="w-5 h-5" />
-              <span className="font-bold">Rescue Ops</span>
+
+        <main className="relative flex flex-1 flex-col overflow-hidden">
+          <div className="flex items-center justify-between border-b border-slate-800 bg-slate-950 p-4 text-white lg:hidden">
+            <div className="flex items-center gap-2 text-emerald-300">
+              <Activity className="h-5 w-5" />
+              <span className="font-bold">Notice-to-Rescue</span>
             </div>
           </div>
-          
-          <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
-            <div className="max-w-5xl mx-auto flex gap-6 flex-col xl:flex-row h-full">
-              {/* Primary Content Left/Center */}
-              <div className="flex-1 min-w-0 pb-20">
-                {children}
-              </div>
-              
-              {/* Right Agentic Feedback Sidebar (Reasoning Trace) */}
-              <div className="w-full xl:w-80 shrink-0 h-64 xl:h-full pb-10 xl:pb-0">
+
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 2xl:p-10">
+            <div className="mx-auto grid min-h-full w-full max-w-[1500px] gap-5 lg:gap-6 xl:grid-cols-[minmax(0,1fr)_18rem] 2xl:max-w-[1580px] 2xl:grid-cols-[minmax(0,1fr)_19rem]">
+              <div className="min-w-0 pb-16 sm:pb-20">{children}</div>
+
+              <aside className="h-56 w-full pb-10 sm:h-64 xl:sticky xl:top-0 xl:h-[calc(100vh-4rem)] xl:pb-0 2xl:h-[calc(100vh-5rem)]">
                 <ReasoningTrace />
-              </div>
+              </aside>
             </div>
           </div>
         </main>

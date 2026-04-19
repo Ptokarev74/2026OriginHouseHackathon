@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Healthly | Medicare Guidance Demo",
+  title: "Notice-to-Rescue | Medicaid Notice Agent",
   description:
-    "A frontend-only Medicare paperwork review demo for possible coverage questions, document review, and patient next-step preparation.",
+    "A frontend-only Medicaid notice rescue demo that identifies coverage blockers and prepares next-step packets.",
 };
 
 export default function RootLayout({

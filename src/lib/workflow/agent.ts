@@ -1,123 +1,81 @@
 import {
   generatePatientInstructions,
-  generateRenewalChecklist,
-  simulateBookAppointment,
-  simulateSendRecords,
+  generateRescueArtifacts,
 } from "@/lib/domain/actions";
-import { assessCoverage } from "@/lib/domain/coverage";
 import { parseDocuments } from "@/lib/domain/parsing";
 import {
-  filterProviders,
-  rankProviders,
-  selectBestProvider,
-} from "@/lib/domain/providers";
-import { assessReferral } from "@/lib/domain/referral";
+  assessBlocker,
+  determineRescuePath,
+  verifyReadiness,
+} from "@/lib/domain/rescue";
 import type { AgentInputCase, AgentRunResult } from "@/lib/types";
 
 export const workflowSteps = [
   {
-    id: "parse",
-    label: "Read documents",
-    description: "Extract Medicare coverage, date, referral, urgency, and preference signals.",
+    id: "read_notice",
+    label: "Read notice",
+    description: "Extract notice type, deadline, risk language, program context, and urgency.",
   },
   {
-    id: "coverage",
-    label: "Review Medicare signals",
-    description: "Flag possible access issues, deadline signals, and questions to verify.",
+    id: "identify_blocker",
+    label: "Identify blocker",
+    description: "Classify the exact issue putting coverage at risk.",
   },
   {
-    id: "referral",
-    label: "Review care needs",
-    description: "Normalize specialty, urgency, and follow-up timing from local text.",
+    id: "determine_path",
+    label: "Determine rescue path",
+    description: "Choose document rescue, renewal completion, deadline rescue, or escalation.",
   },
   {
-    id: "providers",
-    label: "Rank provider options",
-    description: "Score local provider options by Medicare fit, specialty, distance, and access.",
+    id: "prepare_packet",
+    label: "Prepare packet",
+    description: "Generate explanation, checklist, submission packet, handoff, and reminders.",
   },
   {
-    id: "actions",
-    label: "Prepare next steps",
-    description: "Generate verification questions, paperwork checklist, and provider call prep.",
+    id: "verify_readiness",
+    label: "Verify readiness",
+    description: "Check whether required documents are present or escalation is needed.",
   },
   {
     id: "outcome",
-    label: "Build summary",
-    description: "Return an informational patient handoff summary.",
+    label: "Build final status",
+    description: "Return the dashboard status and patient next steps.",
   },
 ] as const;
 
 export type WorkflowStepId = (typeof workflowSteps)[number]["id"];
 
-export function runCoverageToCareAgent(inputCase: AgentInputCase): AgentRunResult {
-  const parsedCase =
-    inputCase.reviewedCase ??
-    parseDocuments(
-      inputCase.documents,
-      inputCase.preferences.languagePreference,
-      inputCase.preferences.transportationNeeded,
-    );
-  const coverageAssessment = assessCoverage(parsedCase);
-  const referralAssessment = assessReferral(parsedCase);
-  const eligibleProviders = filterProviders(
-    inputCase.providers,
-    parsedCase,
-    coverageAssessment,
-    inputCase.preferences,
+export function runNoticeToRescueAgent(inputCase: AgentInputCase): AgentRunResult {
+  const parsedNotice =
+    inputCase.reviewedNotice ??
+    parseDocuments(inputCase.documents, inputCase.preferences);
+  const blockerAssessment = assessBlocker(parsedNotice);
+  const rescuePath = determineRescuePath(parsedNotice, blockerAssessment);
+  const readinessCheck = verifyReadiness(parsedNotice, rescuePath);
+  const artifacts = generateRescueArtifacts(
+    parsedNotice,
+    blockerAssessment,
+    rescuePath,
+    readinessCheck,
   );
-  const rankedProviders = rankProviders(
-    eligibleProviders,
-    parsedCase,
-    coverageAssessment,
-    inputCase.preferences,
-  );
-  const selectedProvider = selectBestProvider(rankedProviders);
-  const renewalChecklist = generateRenewalChecklist(parsedCase);
-  const bookingResult = simulateBookAppointment(parsedCase, selectedProvider);
-  const recordsResult = simulateSendRecords(selectedProvider);
   const patientInstructions = generatePatientInstructions(
-    parsedCase,
-    renewalChecklist,
-    selectedProvider,
+    parsedNotice,
+    blockerAssessment,
+    readinessCheck,
   );
-  const finalStatus = selectedProvider
-    ? "next_steps_ready"
-    : coverageAssessment.manualReviewRequired
-      ? "manual_review_needed"
-      : "no_provider_match";
-  const outcomeSummary = selectedProvider
-    ? `${selectedProvider.name} is the strongest local provider option in this prototype with a ${selectedProvider.score}/100 access score. Verify plan participation before scheduling.`
-    : "No provider option matched the filters. Continue manual provider review and verify coverage details directly.";
+  const finalStatus = readinessCheck.status;
+  const outcomeSummary = readinessCheck.shouldEscalate
+    ? `Escalation needed. ${blockerAssessment.label} requires human review before the patient relies on a submission path.`
+    : readinessCheck.readyToSubmit
+      ? `Rescue path identified. ${blockerAssessment.label} is addressed in the demo packet. Status: ready to submit.`
+      : `Rescue path identified. Missing item: ${readinessCheck.missingDocuments.join(", ")}. Status: awaiting documents.`;
 
   return {
-    parsedCase,
-    coverageAssessment,
-    referralAssessment,
-    rankedProviders,
-    selectedProvider,
-    renewalChecklist,
-    actions: [
-      {
-        id: "checklist",
-        label: "Verification checklist",
-        status: renewalChecklist.required ? "simulated" : "completed",
-        timestamp: new Date().toISOString(),
-        summary: renewalChecklist.required
-          ? "Generated a Medicare verification checklist from possible issue signals."
-          : "No urgent checklist item was detected in the parsed text.",
-        details: renewalChecklist.items,
-      },
-      bookingResult,
-      recordsResult,
-      {
-        id: "instructions",
-        label: "Suggested next steps",
-        status: "simulated",
-        timestamp: new Date().toISOString(),
-        summary: "Generated patient-facing next steps for direct verification.",
-        details: patientInstructions,
-      },
-    ],
+    parsedNotice,
+    blockerAssessment,
+    rescuePath,
+    readinessCheck,
+    artifacts,
     patientInstructions,
     finalStatus,
     outcomeSummary,

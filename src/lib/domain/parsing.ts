@@ -1,7 +1,10 @@
 import type {
+  BlockerType,
+  CaseStatus,
+  CommunicationPreferences,
   DocumentSourceKind,
-  MedicareCoverageType,
-  ParsedCase,
+  NoticeType,
+  ParsedNotice,
   SourceDocument,
   UrgencyLevel,
 } from "@/lib/types";
@@ -19,15 +22,27 @@ function findValue(content: string, labels: string[]) {
   return undefined;
 }
 
+function splitList(value?: string) {
+  if (!value || /none|not listed|n\/a/i.test(value)) {
+    return [];
+  }
+
+  return value
+    .split(/,|;| and |\n-/i)
+    .map((item) => item.trim().replace(/^-\s*/, ""))
+    .filter(Boolean);
+}
+
 function findDate(content: string) {
   const labeledDate = findValue(content, [
     "Deadline",
     "Due date",
-    "Payment due date",
     "Respond by",
+    "Submit by",
+    "Closure date",
     "Termination date",
-    "Effective date",
     "Coverage end date",
+    "Renewal due",
     "Appeal deadline",
   ]);
 
@@ -41,146 +56,29 @@ function findDate(content: string) {
   );
 }
 
-function normalizeUrgency(value?: string): UrgencyLevel {
-  const normalized = value?.toLowerCase() ?? "";
+function inferNoticeType(content: string): NoticeType {
+  const labeled = findValue(content, ["Notice type", "Type"]);
 
-  if (normalized.includes("urgent") || normalized.includes("stat")) {
-    return "urgent";
+  if (/closure/i.test(labeled ?? content)) return "closure";
+  if (/termination|terminate|ending/i.test(labeled ?? content)) return "termination";
+  if (/renewal|redetermination/i.test(labeled ?? content)) return "renewal";
+  if (/action required|failure to respond|must respond|requested information/i.test(labeled ?? content)) {
+    return "action_required";
   }
+  if (/case status|pending|case letter/i.test(labeled ?? content)) return "case_status";
 
-  if (
-    normalized.includes("soon") ||
-    normalized.includes("14") ||
-    normalized.includes("two week")
-  ) {
-    return "soon";
-  }
-
-  return "routine";
+  return "uploaded_text";
 }
 
-function inferUrgency(content: string, labeledUrgency?: string): UrgencyLevel {
-  if (labeledUrgency) {
-    return normalizeUrgency(labeledUrgency);
-  }
-
-  if (/urgent|immediately|termination|discharge|within 7 days|stat/i.test(content)) {
-    return "urgent";
-  }
-
-  if (/soon|within 14 days|follow.?up|referral|specialist/i.test(content)) {
-    return "soon";
-  }
-
-  return "routine";
-}
-
-function parseMissingDocuments(value?: string) {
-  if (!value || /none/i.test(value)) {
-    return [];
-  }
-
-  return value
-    .split(/,|;| and /i)
-    .map((item) => item.trim())
-    .filter(Boolean);
-}
-
-function inferMissingDocuments(content: string) {
-  const labeled = parseMissingDocuments(
-    findValue(content, [
-      "Missing documents",
-      "Requested documents",
-      "Documents needed",
-      "Paperwork needed",
-    ]),
-  );
-
-  if (labeled.length > 0) {
-    return labeled;
-  }
-
-  const documents = [
-    ["premium payment notice", /premium|payment|past due|non.?payment/i],
-    ["plan notice or letter", /notice|letter|coverage change/i],
-    ["referral or discharge paperwork", /referral|discharge|hospital/i],
-    ["provider network confirmation", /network|accepts|participating provider/i],
-  ] as const;
-
-  return documents
-    .filter(([, expression]) => expression.test(content))
-    .map(([label]) => label);
-}
-
-function parseTransportationFlag(content: string, preferenceFlag?: boolean) {
-  if (preferenceFlag) {
-    return true;
-  }
-
-  return /no reliable transportation|transportation needed|needs transportation/i.test(
-    content,
-  );
-}
-
-function inferCoverageType(content: string): MedicareCoverageType {
-  if (/dual eligible|dual-eligible|medicare and medicaid|medicaid and medicare/i.test(content)) {
-    return "Dual eligible";
-  }
-
-  if (/medicare advantage|part c|\bma\b|hmo|ppo/i.test(content)) {
-    return "Medicare Advantage";
-  }
-
-  if (/original medicare|part a|part b|traditional medicare/i.test(content)) {
-    return "Original Medicare";
-  }
-
-  if (/medicare/i.test(content)) {
-    return "Original Medicare";
-  }
-
-  return "Unknown";
-}
-
-function inferInsuranceType(content: string, coverageType: MedicareCoverageType) {
-  return (
-    findValue(content, [
-      "Insurance",
-      "Coverage",
-      "Plan",
-      "Medicare coverage",
-      "Coverage type",
-      "Plan type",
-    ]) ?? coverageType
-  );
-}
-
-function inferIssueSignals(content: string) {
+function inferRiskLanguage(content: string) {
   const signals = [
-    [
-      "Premium or payment issue mentioned",
-      /premium|payment|past due|non.?payment|unpaid|bill/i,
-    ],
-    [
-      "Deadline or response date mentioned",
-      /deadline|due date|respond by|termination date|appeal/i,
-    ],
-    [
-      "Plan or network change mentioned",
-      /plan change|network|provider directory|no longer participating|out of network/i,
-    ],
-    [
-      "Referral or discharge follow-up mentioned",
-      /referral|discharge|hospital|follow.?up|specialist/i,
-    ],
-    [
-      "Transportation concern mentioned",
-      /transportation|ride|no reliable transportation|public transit/i,
-    ],
-    [
-      "Language preference mentioned",
-      /language preference|interpreter|spanish|polish|mandarin|vietnamese/i,
-    ],
+    ["Closure language found", /closure|close your case|case will close|benefits will close/i],
+    ["Termination language found", /termination|terminate|benefits will end|coverage will end/i],
+    ["Renewal action required", /renewal|redetermination|renew your coverage/i],
+    ["Failure-to-respond language found", /failure to respond|did not respond|we have not received/i],
+    ["Missing verification language found", /missing verification|proof required|send proof|provide proof/i],
+    ["Deadline language found", /deadline|due date|respond by|submit by|before/i],
+    ["Eligibility conflict language found", /inconsistent|conflicting|cannot verify|does not match/i],
   ] as const;
 
   return signals
@@ -188,153 +86,217 @@ function inferIssueSignals(content: string) {
     .map(([label]) => label);
 }
 
-function inferPossibleIssue(content: string) {
-  const labeled = findValue(content, [
-    "Possible issue",
-    "Issue",
-    "Status issue",
-    "Notice",
-    "Reason",
-  ]);
-
-  if (labeled) {
-    return labeled;
-  }
-
-  if (/premium|payment|past due|non.?payment|unpaid/i.test(content)) {
-    return "Possible premium or payment issue that should be verified with the plan.";
-  }
-
-  if (/termination|coverage end|cancel|lapse/i.test(content)) {
-    return "Possible coverage interruption language that should be verified directly.";
-  }
-
-  if (/network|no longer participating|out of network|provider directory/i.test(content)) {
-    return "Possible provider network or plan participation change.";
-  }
-
-  if (/referral|discharge|hospital|follow.?up/i.test(content)) {
-    return "Follow-up care paperwork may need confirmation before the next appointment.";
-  }
-
-  return "No specific Medicare issue was confidently detected; review the document details manually.";
-}
-
-function inferSpecialty(content: string) {
-  const labeled = findValue(content, [
-    "Recommended specialty",
-    "Specialty",
-    "Referral specialty",
-    "Provider specialty",
-  ]);
-
-  if (labeled) {
-    return labeled;
-  }
-
-  const specialties = [
-    "Cardiology",
-    "Pulmonology",
-    "Orthopedics",
-    "Neurology",
-    "Behavioral Health",
-    "Endocrinology",
-    "Gastroenterology",
-  ];
-
-  return (
-    specialties.find((specialty) =>
-      new RegExp(specialty.replace(" ", "\\s+"), "i").test(content),
-    ) ?? "Primary Care"
+function inferMissingRequirements(content: string) {
+  const labeled = splitList(
+    findValue(content, [
+      "Missing requirements",
+      "Missing documents",
+      "Requested documents",
+      "Documents needed",
+      "Verification needed",
+      "Required proof",
+    ]),
   );
+
+  if (labeled.length > 0) {
+    return labeled;
+  }
+
+  const requirements = [
+    ["proof of income", /proof of income|income verification|pay stub|wage|earnings/i],
+    ["proof of residency", /proof of residency|residency verification|utility bill|lease|address proof/i],
+    ["completed renewal form", /incomplete renewal|renewal form|redetermination form|signature missing/i],
+    ["identity verification", /identity|photo id|identification|date of birth/i],
+  ] as const;
+
+  return requirements
+    .filter(([, expression]) => expression.test(content))
+    .map(([label]) => label);
 }
 
-function summarizeDocument(content: string, issueSignals: string[]) {
+function inferProvidedDocuments(documents: SourceDocument[], combined: string) {
+  const labeled = splitList(
+    findValue(combined, [
+      "Uploaded documents",
+      "Provided documents",
+      "Documents attached",
+      "Documents on file",
+    ]),
+  );
+
+  const inferred = documents
+    .filter((document) => document.documentType === "verification_document")
+    .map((document) => document.title);
+
+  return Array.from(new Set([...labeled, ...inferred]));
+}
+
+function inferBlockerType(content: string, missingRequirements: string[], deadlineDate?: string): BlockerType {
+  const explicit = findValue(content, ["Blocker", "Issue", "Reason"]) ?? "";
+  const text = `${explicit} ${content}`;
+
+  if (/missed deadline|deadline passed|past the deadline|already closed/i.test(text)) {
+    return "missed_deadline";
+  }
+  if (/conflicting|inconsistent|cannot verify|does not match|manual review/i.test(text)) {
+    return "eligibility_inconsistency";
+  }
+  if (/income|pay stub|wage|earnings/i.test(text) || missingRequirements.some((item) => /income|pay/i.test(item))) {
+    return "missing_income_proof";
+  }
+  if (/residency|address|utility bill|lease/i.test(text) || missingRequirements.some((item) => /residency|address|utility|lease/i.test(item))) {
+    return "missing_residency_proof";
+  }
+  if (/incomplete renewal|renewal form|redetermination form|signature/i.test(text)) {
+    return "incomplete_renewal";
+  }
+  if (deadlineDate) {
+    return "upcoming_deadline";
+  }
+
+  return "manual_review";
+}
+
+function blockerLabel(blockerType: BlockerType) {
+  const labels: Record<BlockerType, string> = {
+    missing_income_proof: "Missing proof of income",
+    missing_residency_proof: "Missing proof of residency",
+    incomplete_renewal: "Incomplete renewal paperwork",
+    eligibility_inconsistency: "Eligibility information conflict",
+    missed_deadline: "Deadline may have been missed",
+    upcoming_deadline: "Upcoming response deadline",
+    manual_review: "Unclear issue needing manual review",
+  };
+
+  return labels[blockerType];
+}
+
+function inferUrgency(content: string, blockerType: BlockerType): UrgencyLevel {
+  if (blockerType === "missed_deadline") return "overdue";
+  if (/urgent|immediately|termination|closure|coverage will end|before benefits close/i.test(content)) {
+    return "urgent";
+  }
+  if (/soon|respond by|submit by|renewal due|action required/i.test(content)) {
+    return "soon";
+  }
+
+  return "routine";
+}
+
+function inferCaseStatus(blockerType: BlockerType, missingRequirements: string[]): CaseStatus {
+  if (
+    blockerType === "missed_deadline" ||
+    blockerType === "eligibility_inconsistency" ||
+    blockerType === "manual_review"
+  ) {
+    return "escalation_needed";
+  }
+  if (missingRequirements.length > 0) {
+    return "awaiting_documents";
+  }
+
+  return "blocker_identified";
+}
+
+function inferIssueExplanation(noticeType: NoticeType, blockerType: BlockerType, deadlineDate?: string) {
+  const noticeCopy = noticeType.replaceAll("_", " ");
+  const dueCopy = deadlineDate ? ` by ${deadlineDate}` : "";
+
+  if (blockerType === "missing_income_proof") {
+    return `Coverage is at risk because this ${noticeCopy} asks for proof of income${dueCopy}.`;
+  }
+  if (blockerType === "missing_residency_proof") {
+    return `Coverage is at risk because this ${noticeCopy} asks for proof of residency${dueCopy}.`;
+  }
+  if (blockerType === "incomplete_renewal") {
+    return `Coverage is at risk because the renewal paperwork appears incomplete${dueCopy}.`;
+  }
+  if (blockerType === "eligibility_inconsistency") {
+    return "The notice includes conflicting eligibility information, so a navigator should review it before submission.";
+  }
+  if (blockerType === "missed_deadline") {
+    return "The notice suggests a deadline may have already passed, so the case should be escalated for appeal or reinstatement review.";
+  }
+
+  return `The notice includes an action deadline${dueCopy}, but the exact requirement should be confirmed.`;
+}
+
+function summarizeDocument(content: string, noticeType: NoticeType, riskLanguage: string[]) {
   const firstLine = content
     .split(/\n+/)
     .map((line) => line.trim())
     .find(Boolean);
 
   if (firstLine && firstLine.length <= 120) {
-    return `${firstLine}. ${issueSignals.length} possible signal${issueSignals.length === 1 ? "" : "s"} found for review.`;
+    return `${firstLine}. ${riskLanguage.length} risk signal${riskLanguage.length === 1 ? "" : "s"} found.`;
   }
 
-  return `Uploaded Medicare-related text reviewed locally. ${issueSignals.length} possible signal${issueSignals.length === 1 ? "" : "s"} found for review.`;
+  return `Medicaid ${noticeType.replaceAll("_", " ")} text reviewed locally. ${riskLanguage.length} risk signal${riskLanguage.length === 1 ? "" : "s"} found.`;
 }
 
-function getConfidence(parsedFieldCount: number): ParsedCase["extractionConfidence"] {
-  if (parsedFieldCount >= 6) {
-    return "high";
-  }
-
-  if (parsedFieldCount >= 3) {
-    return "medium";
-  }
-
+function getConfidence(parsedFieldCount: number): ParsedNotice["extractionConfidence"] {
+  if (parsedFieldCount >= 6) return "high";
+  if (parsedFieldCount >= 3) return "medium";
   return "low";
 }
 
 export function parseDocuments(
   documents: SourceDocument[],
-  fallbackLanguagePreference?: string,
-  fallbackTransportationFlag?: boolean,
+  preferences: CommunicationPreferences = {},
   sourceKind: DocumentSourceKind = "sample",
-): ParsedCase {
+): ParsedNotice {
   const combined = documents.map((document) => document.content).join("\n");
-  const patientName = findValue(combined, ["Patient", "Member"]);
-  const medicareCoverageType = inferCoverageType(combined);
-  const insuranceType = inferInsuranceType(combined, medicareCoverageType);
-  const deadlineDate = findDate(combined);
-  const missingDocuments = inferMissingDocuments(combined);
-  const specialtyNeeded = inferSpecialty(combined);
-  const urgency = inferUrgency(
-    combined,
-    findValue(combined, ["Urgency", "Priority"]),
-  );
-  const locationZip =
-    findValue(combined, ["ZIP", "Zip code", "Postal code"]) ?? "Unknown";
-  const languagePreference =
-    findValue(combined, ["Language preference"]) ?? fallbackLanguagePreference;
-  const recommendedFollowUpWindow = findValue(combined, [
-    "Recommended follow-up window",
-    "Follow-up window",
+  const patientName = findValue(combined, ["Patient", "Member", "Client"]);
+  const medicaidProgram = findValue(combined, [
+    "Medicaid program",
+    "Program",
+    "Coverage",
+    "Plan",
   ]);
-  const issueSignals = inferIssueSignals(combined);
-  const premiumPaymentIssue = /premium|payment|past due|non.?payment|unpaid|bill/i.test(
-    combined,
-  );
+  const noticeType = inferNoticeType(combined);
+  const deadlineDate = findDate(combined);
+  const riskLanguage = inferRiskLanguage(combined);
+  const missingRequirements = inferMissingRequirements(combined);
+  const providedDocuments = inferProvidedDocuments(documents, combined);
+  const blockerType = inferBlockerType(combined, missingRequirements, deadlineDate);
+  const urgency = inferUrgency(combined, blockerType);
+  const languagePreference =
+    findValue(combined, ["Language preference", "Preferred language"]) ??
+    preferences.languagePreference;
+  const contactMethod =
+    (findValue(combined, ["Contact method", "Communication preference"]) as
+      | CommunicationPreferences["contactMethod"]
+      | undefined) ?? preferences.contactMethod;
+  const caseStatus = inferCaseStatus(blockerType, missingRequirements);
   const parsedFieldCount = [
     patientName,
-    insuranceType !== "Unknown" ? insuranceType : undefined,
-    medicareCoverageType !== "Unknown" ? medicareCoverageType : undefined,
+    medicaidProgram,
+    noticeType !== "uploaded_text" ? noticeType : undefined,
     deadlineDate,
-    locationZip !== "Unknown" ? locationZip : undefined,
+    riskLanguage.length > 0 ? riskLanguage.join(", ") : undefined,
+    missingRequirements.length > 0 ? missingRequirements.join(", ") : undefined,
+    providedDocuments.length > 0 ? providedDocuments.join(", ") : undefined,
     languagePreference,
-    recommendedFollowUpWindow,
-    specialtyNeeded !== "Primary Care" ? specialtyNeeded : undefined,
-    issueSignals.length > 0 ? issueSignals.join(", ") : undefined,
+    contactMethod,
   ].filter(Boolean).length;
 
   return {
     patientName,
-    insuranceType,
-    medicareCoverageType,
-    possibleStatusIssue: inferPossibleIssue(combined),
+    medicaidProgram,
+    noticeType,
     deadlineDate,
-    premiumPaymentIssue,
-    issueSignals,
-    documentSummary: summarizeDocument(combined, issueSignals),
+    riskLanguage,
+    blockerType,
+    blockerLabel: blockerLabel(blockerType),
+    missingRequirements,
+    providedDocuments,
+    documentSummary: summarizeDocument(combined, noticeType, riskLanguage),
+    issueExplanation: inferIssueExplanation(noticeType, blockerType, deadlineDate),
     extractionConfidence: getConfidence(parsedFieldCount),
     sourceKind,
-    missingDocuments,
-    specialtyNeeded,
     urgency,
-    locationZip,
-    transportationFlag: parseTransportationFlag(
-      combined,
-      fallbackTransportationFlag,
-    ),
+    caseStatus,
     languagePreference,
-    recommendedFollowUpWindow,
+    contactMethod,
   };
 }

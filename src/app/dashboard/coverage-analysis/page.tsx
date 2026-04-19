@@ -3,8 +3,17 @@
 import React, { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight, ShieldCheck } from "lucide-react";
+import { useLanguage } from "@/components/i18n/LanguageProvider";
 import { useDashboard } from "@/components/dashboard/DashboardContext";
 import { Badge, Section } from "@/components/dashboard/ui";
+import {
+  blockerTypeLabel,
+  caseStatusLabel,
+  getDashboardCopy,
+  noticeTypeLabel,
+  sourceKindLabel,
+  urgencyLabel,
+} from "@/lib/i18n/dashboard";
 import type {
   BlockerType,
   CaseStatus,
@@ -47,6 +56,8 @@ function splitTextarea(value: string) {
 
 export default function NoticeAnalysisPage() {
   const router = useRouter();
+  const { language } = useLanguage();
+  const copy = getDashboardCopy(language);
   const {
     reviewNotice,
     setReviewNotice,
@@ -76,61 +87,71 @@ export default function NoticeAnalysisPage() {
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="mb-6 border-b border-slate-200 pb-4">
-        <h1 className="text-3xl font-bold text-slate-950">Notice Analysis</h1>
+        <h1 className="text-3xl font-bold text-slate-950">{copy.analysis.title}</h1>
         <p className="mt-2 text-slate-600">
-          Review the extracted Medicaid notice fields before running the rescue agent.
+          {copy.analysis.copy}
         </p>
       </div>
 
-      <Section eyebrow="Data Review" title="Confirm extracted notice details">
+      <Section eyebrow={copy.analysis.eyebrow} title={copy.analysis.sectionTitle}>
         <div className="mb-6 flex flex-wrap items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 p-4">
           <ShieldCheck className="h-5 w-5 text-emerald-600" />
-          <span className="text-sm font-medium text-slate-700">Local extraction complete.</span>
+          <span className="text-sm font-medium text-slate-700">
+            {copy.common.localExtractionComplete}
+          </span>
           <Badge tone={reviewNotice.extractionConfidence === "high" ? "good" : "warn"}>
-            {reviewNotice.extractionConfidence.toUpperCase()} CONFIDENCE
+            {reviewNotice.extractionConfidence.toUpperCase()} {copy.common.confidence}
           </Badge>
-          <Badge tone="blue">{reviewNotice.sourceKind.replaceAll("_", " ")}</Badge>
+          <Badge tone="blue">{sourceKindLabel(language, reviewNotice.sourceKind)}</Badge>
         </div>
 
         <div className="grid gap-6 md:grid-cols-2">
           <label className="block">
-            <span className="text-sm font-semibold text-slate-700">Notice type</span>
+            <span className="text-sm font-semibold text-slate-700">
+              {copy.analysis.noticeType}
+            </span>
             <select
               className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-slate-950 outline-none focus:ring-2 focus:ring-emerald-500"
               onChange={(event) => updateParsed({ noticeType: event.target.value as NoticeType })}
               value={reviewNotice.noticeType}
             >
-              <option value="closure">Closure</option>
-              <option value="renewal">Renewal</option>
-              <option value="termination">Termination</option>
-              <option value="action_required">Action required</option>
-              <option value="case_status">Case status</option>
-              <option value="uploaded_text">Uploaded text</option>
+              <option value="closure">{noticeTypeLabel(language, "closure")}</option>
+              <option value="renewal">{noticeTypeLabel(language, "renewal")}</option>
+              <option value="termination">{noticeTypeLabel(language, "termination")}</option>
+              <option value="action_required">
+                {noticeTypeLabel(language, "action_required")}
+              </option>
+              <option value="case_status">{noticeTypeLabel(language, "case_status")}</option>
+              <option value="uploaded_text">
+                {noticeTypeLabel(language, "uploaded_text")}
+              </option>
             </select>
           </label>
 
           <Field
-            label="Deadline or response date"
+            label={copy.analysis.deadline}
             onChange={(event) => updateParsed({ deadlineDate: event.target.value })}
-            placeholder="YYYY-MM-DD"
+            placeholder={copy.common.extractionPlaceholder}
             value={reviewNotice.deadlineDate}
           />
 
           <Field
-            label="Patient name"
+            label={copy.analysis.patientName}
             onChange={(event) => updateParsed({ patientName: event.target.value })}
             value={reviewNotice.patientName}
           />
 
           <Field
-            label="Medicaid program"
+            label={copy.analysis.medicaidProgram}
             onChange={(event) => updateParsed({ medicaidProgram: event.target.value })}
-            placeholder="Family Medicaid, Adult Medicaid..."
+            placeholder={copy.common.familyProgramPlaceholder}
             value={reviewNotice.medicaidProgram}
           />
 
           <label className="block">
-            <span className="text-sm font-semibold text-slate-700">Exact blocker</span>
+            <span className="text-sm font-semibold text-slate-700">
+              {copy.analysis.exactBlocker}
+            </span>
             <select
               className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-slate-950 outline-none focus:ring-2 focus:ring-emerald-500"
               onChange={(event) =>
@@ -138,38 +159,56 @@ export default function NoticeAnalysisPage() {
               }
               value={reviewNotice.blockerType}
             >
-              <option value="missing_income_proof">Missing proof of income</option>
-              <option value="missing_residency_proof">Missing proof of residency</option>
-              <option value="incomplete_renewal">Incomplete renewal paperwork</option>
-              <option value="eligibility_inconsistency">Eligibility inconsistency</option>
-              <option value="missed_deadline">Missed deadline</option>
-              <option value="upcoming_deadline">Upcoming deadline</option>
-              <option value="manual_review">Manual review</option>
+              <option value="missing_income_proof">
+                {blockerTypeLabel(language, "missing_income_proof")}
+              </option>
+              <option value="missing_residency_proof">
+                {blockerTypeLabel(language, "missing_residency_proof")}
+              </option>
+              <option value="incomplete_renewal">
+                {blockerTypeLabel(language, "incomplete_renewal")}
+              </option>
+              <option value="eligibility_inconsistency">
+                {blockerTypeLabel(language, "eligibility_inconsistency")}
+              </option>
+              <option value="missed_deadline">
+                {blockerTypeLabel(language, "missed_deadline")}
+              </option>
+              <option value="upcoming_deadline">
+                {blockerTypeLabel(language, "upcoming_deadline")}
+              </option>
+              <option value="manual_review">
+                {blockerTypeLabel(language, "manual_review")}
+              </option>
             </select>
           </label>
 
           <Field
-            label="Blocker label"
+            label={copy.analysis.blockerLabel}
             onChange={(event) => updateParsed({ blockerLabel: event.target.value })}
             value={reviewNotice.blockerLabel}
           />
 
           <label className="block">
-            <span className="text-sm font-semibold text-slate-700">Urgency</span>
+            <span className="text-sm font-semibold text-slate-700">
+              {copy.analysis.urgency}
+            </span>
             <select
               className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-slate-950 outline-none focus:ring-2 focus:ring-emerald-500"
               onChange={(event) => updateParsed({ urgency: event.target.value as UrgencyLevel })}
               value={reviewNotice.urgency}
             >
-              <option value="routine">Routine</option>
-              <option value="soon">Soon</option>
-              <option value="urgent">Urgent</option>
-              <option value="overdue">Overdue</option>
+              <option value="routine">{urgencyLabel(language, "routine")}</option>
+              <option value="soon">{urgencyLabel(language, "soon")}</option>
+              <option value="urgent">{urgencyLabel(language, "urgent")}</option>
+              <option value="overdue">{urgencyLabel(language, "overdue")}</option>
             </select>
           </label>
 
           <label className="block">
-            <span className="text-sm font-semibold text-slate-700">Case status</span>
+            <span className="text-sm font-semibold text-slate-700">
+              {copy.analysis.caseStatus}
+            </span>
             <select
               className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-slate-950 outline-none focus:ring-2 focus:ring-emerald-500"
               onChange={(event) =>
@@ -177,18 +216,30 @@ export default function NoticeAnalysisPage() {
               }
               value={reviewNotice.caseStatus}
             >
-              <option value="notice_received">Notice received</option>
-              <option value="blocker_identified">Blocker identified</option>
-              <option value="awaiting_documents">Awaiting documents</option>
-              <option value="ready_to_submit">Ready to submit</option>
-              <option value="escalation_needed">Escalation needed</option>
-              <option value="rescue_in_progress">Rescue in progress</option>
-              <option value="resolved">Resolved</option>
+              <option value="notice_received">
+                {caseStatusLabel(language, "notice_received")}
+              </option>
+              <option value="blocker_identified">
+                {caseStatusLabel(language, "blocker_identified")}
+              </option>
+              <option value="awaiting_documents">
+                {caseStatusLabel(language, "awaiting_documents")}
+              </option>
+              <option value="ready_to_submit">
+                {caseStatusLabel(language, "ready_to_submit")}
+              </option>
+              <option value="escalation_needed">
+                {caseStatusLabel(language, "escalation_needed")}
+              </option>
+              <option value="rescue_in_progress">
+                {caseStatusLabel(language, "rescue_in_progress")}
+              </option>
+              <option value="resolved">{caseStatusLabel(language, "resolved")}</option>
             </select>
           </label>
 
           <Field
-            label="Language preference"
+            label={copy.analysis.languagePreference}
             onChange={(event) => {
               updateParsed({ languagePreference: event.target.value });
               setPreferences({ ...preferences, languagePreference: event.target.value });
@@ -197,7 +248,9 @@ export default function NoticeAnalysisPage() {
           />
 
           <label className="block">
-            <span className="text-sm font-semibold text-slate-700">Communication preference</span>
+            <span className="text-sm font-semibold text-slate-700">
+              {copy.analysis.communicationPreference}
+            </span>
             <select
               className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-slate-950 outline-none focus:ring-2 focus:ring-emerald-500"
               onChange={(event) => {
@@ -217,7 +270,7 @@ export default function NoticeAnalysisPage() {
         <div className="mt-8 grid gap-6 md:grid-cols-2">
           <label className="block">
             <span className="text-sm font-semibold text-slate-700">
-              Missing requirements
+              {copy.analysis.missingRequirements}
             </span>
             <textarea
               className="mt-2 min-h-32 w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm leading-6 text-slate-950 outline-none focus:ring-2 focus:ring-emerald-500"
@@ -228,7 +281,9 @@ export default function NoticeAnalysisPage() {
             />
           </label>
           <label className="block">
-            <span className="text-sm font-semibold text-slate-700">Risk language</span>
+            <span className="text-sm font-semibold text-slate-700">
+              {copy.analysis.riskLanguage}
+            </span>
             <textarea
               className="mt-2 min-h-32 w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm leading-6 text-slate-950 outline-none focus:ring-2 focus:ring-emerald-500"
               onChange={(event) =>
@@ -247,7 +302,7 @@ export default function NoticeAnalysisPage() {
           type="button"
         >
           <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
-          Back to Intake
+          {copy.analysis.back}
         </button>
 
         <button
@@ -255,7 +310,7 @@ export default function NoticeAnalysisPage() {
           onClick={handleNextStep}
           type="button"
         >
-          Run Rescue Agent
+          {copy.analysis.run}
           <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
         </button>
       </div>

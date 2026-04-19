@@ -11,36 +11,49 @@ import {
   PackageCheck,
   ShieldAlert,
 } from "lucide-react";
+import { LanguageSwitcher } from "@/components/i18n/LanguageSwitcher";
+import { useLanguage } from "@/components/i18n/LanguageProvider";
 import { DashboardProvider, useDashboard } from "@/components/dashboard/DashboardContext";
 import { ReasoningTrace } from "@/components/dashboard/ReasoningTrace";
 import { classNames } from "@/components/dashboard/ui";
-
-const NAV_STEPS = [
-  { name: "Intake", href: "/dashboard/intake", icon: FileText },
-  { name: "Notice Analysis", href: "/dashboard/coverage-analysis", icon: FileSearch },
-  { name: "Rescue Path", href: "/dashboard/rescue-path", icon: ShieldAlert },
-  { name: "Packet Prep", href: "/dashboard/action-execution", icon: PackageCheck },
-  { name: "Final Status", href: "/dashboard/final-status", icon: CheckCircle2 },
-];
+import { getDashboardCopy } from "@/lib/i18n/dashboard";
 
 function Sidebar() {
   const pathname = usePathname();
   const { status } = useDashboard();
+  const { language } = useLanguage();
+  const copy = getDashboardCopy(language);
+  const navSteps = [
+    { name: copy.nav.intake, href: "/dashboard/intake", icon: FileText },
+    { name: copy.nav.analysis, href: "/dashboard/coverage-analysis", icon: FileSearch },
+    { name: copy.nav.rescuePath, href: "/dashboard/rescue-path", icon: ShieldAlert },
+    { name: copy.nav.packetPrep, href: "/dashboard/action-execution", icon: PackageCheck },
+    { name: copy.nav.finalStatus, href: "/dashboard/final-status", icon: CheckCircle2 },
+  ];
 
   return (
-    <nav className="hidden w-64 flex-col border-r border-slate-800 bg-slate-950 text-slate-300 lg:flex">
-      <div className="border-b border-slate-800 p-6">
-        <div className="mb-2 flex items-center gap-2 text-emerald-300">
-          <ShieldAlert className="h-6 w-6" />
-          <h1 className="text-lg font-bold text-white">Notice-to-Rescue</h1>
-        </div>
-        <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
-          Medicaid notice agent
-        </p>
+    <nav
+      aria-label={copy.nav.primary}
+      className="hidden w-64 flex-col border-r border-slate-800 bg-slate-950 text-slate-300 lg:flex"
+    >
+      <div className="border-b border-slate-800 p-4">
+        <Link
+          aria-label="Back to main page"
+          className="block rounded-lg px-2 py-2 transition hover:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+          href="/"
+        >
+          <div className="mb-2 flex items-center gap-2 text-emerald-300">
+            <ShieldAlert className="h-6 w-6" />
+            <h1 className="text-lg font-bold text-white">Notice-to-Rescue</h1>
+          </div>
+          <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+            {copy.appSubtitle}
+          </p>
+        </Link>
       </div>
 
       <div className="flex-1 space-y-1 overflow-y-auto px-4 py-6">
-        {NAV_STEPS.map((step, index) => {
+        {navSteps.map((step, index) => {
           const isActive = pathname === step.href;
           const Icon = step.icon;
 
@@ -72,8 +85,11 @@ function Sidebar() {
       </div>
 
       <div className="border-t border-slate-800 p-4">
+        <div className="mb-3">
+          <LanguageSwitcher compact />
+        </div>
         <div className="flex items-center justify-between text-xs text-slate-500">
-          <span>Agent status</span>
+          <span>{copy.shell.agentStatus}</span>
           <span
             className={classNames(
               "font-semibold",
@@ -84,7 +100,7 @@ function Sidebar() {
                   : "text-emerald-400",
             )}
           >
-            {status.toUpperCase()}
+            {copy.status[status]}
           </span>
         </div>
       </div>
@@ -100,10 +116,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
         <main className="relative flex flex-1 flex-col overflow-hidden">
           <div className="flex items-center justify-between border-b border-slate-800 bg-slate-950 p-4 text-white lg:hidden">
-            <div className="flex items-center gap-2 text-emerald-300">
+            <Link
+              aria-label="Back to main page"
+              className="flex items-center gap-2 rounded-lg text-emerald-300 transition hover:text-emerald-100 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-offset-2 focus:ring-offset-slate-950"
+              href="/"
+            >
               <Activity className="h-5 w-5" />
               <span className="font-bold">Notice-to-Rescue</span>
-            </div>
+            </Link>
+            <LanguageSwitcher compact />
           </div>
 
           <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 2xl:p-10">

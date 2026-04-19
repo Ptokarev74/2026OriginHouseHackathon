@@ -1,3 +1,6 @@
+# Contributors 
+Raghav Maddula, Pavel Tokarev, Theo Nguyen, Preston Nguyen
+
 # Notice-to-Rescue
 
 Notice-to-Rescue is a frontend-only Medicaid notice rescue prototype. It is

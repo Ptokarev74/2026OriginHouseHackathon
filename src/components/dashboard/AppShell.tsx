@@ -23,6 +23,12 @@ function Sidebar() {
   const { status } = useDashboard();
   const { language } = useLanguage();
   const copy = getDashboardCopy(language);
+  const homeLabel =
+    language === "so"
+      ? "Ku laabo bogga hore"
+      : language === "es"
+        ? "Volver a la pagina principal"
+        : "Back to main page";
   const navSteps = [
     { name: copy.nav.intake, href: "/dashboard/intake", icon: FileText },
     { name: copy.nav.analysis, href: "/dashboard/coverage-analysis", icon: FileSearch },
@@ -38,7 +44,7 @@ function Sidebar() {
     >
       <div className="border-b border-slate-800 p-4">
         <Link
-          aria-label="Back to main page"
+          aria-label={homeLabel}
           className="block rounded-lg px-2 py-2 transition hover:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-400"
           href="/"
         >
@@ -109,6 +115,14 @@ function Sidebar() {
 }
 
 export function AppShell({ children }: { children: React.ReactNode }) {
+  const { language } = useLanguage();
+  const homeLabel =
+    language === "so"
+      ? "Ku laabo bogga hore"
+      : language === "es"
+        ? "Volver a la pagina principal"
+        : "Back to main page";
+
   return (
     <DashboardProvider>
       <div className="flex h-screen overflow-hidden bg-[#f6f8fb] font-sans text-slate-950">
@@ -117,7 +131,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <main className="relative flex flex-1 flex-col overflow-hidden">
           <div className="flex items-center justify-between border-b border-slate-800 bg-slate-950 p-4 text-white lg:hidden">
             <Link
-              aria-label="Back to main page"
+              aria-label={homeLabel}
               className="flex items-center gap-2 rounded-lg text-emerald-300 transition hover:text-emerald-100 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-offset-2 focus:ring-offset-slate-950"
               href="/"
             >

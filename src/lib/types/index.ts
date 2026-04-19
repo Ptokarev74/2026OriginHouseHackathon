@@ -152,6 +152,7 @@ export type AgentInputCase = {
 };
 
 export type LiveGuidanceRequest = {
+  language?: AppLanguage;
   blockerType: BlockerType;
   blockerLabel: string;
   noticeType: NoticeType;

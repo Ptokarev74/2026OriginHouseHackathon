@@ -6,7 +6,11 @@ import { ArrowLeft, ArrowRight, CheckCircle, ServerCog } from "lucide-react";
 import { useLanguage } from "@/components/i18n/LanguageProvider";
 import { useDashboard } from "@/components/dashboard/DashboardContext";
 import { Badge, Section, classNames } from "@/components/dashboard/ui";
-import { caseStatusLabel, getDashboardCopy } from "@/lib/i18n/dashboard";
+import {
+  actionStatusLabel,
+  caseStatusLabel,
+  getDashboardCopy,
+} from "@/lib/i18n/dashboard";
 import { localizedWorkflowSteps, workflowSteps } from "@/lib/workflow/agent";
 
 export default function PacketPreparationPage() {
@@ -151,7 +155,7 @@ export default function PacketPreparationPage() {
                 <div className="mb-2 flex flex-wrap items-center justify-between gap-3">
                   <span className="font-semibold text-slate-900">{artifact.label}</span>
                   <Badge tone={artifact.status === "blocked" ? "danger" : "good"}>
-                    {artifact.status.toUpperCase()}
+                    {actionStatusLabel(language, artifact.status)}
                   </Badge>
                 </div>
                 <p className="text-sm leading-relaxed text-slate-600">{artifact.summary}</p>

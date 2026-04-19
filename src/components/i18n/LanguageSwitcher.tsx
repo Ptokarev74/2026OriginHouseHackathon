@@ -5,12 +5,13 @@ import { useLanguage } from "./LanguageProvider";
 
 export function LanguageSwitcher({ compact = false }: { compact?: boolean }) {
   const { language, setLanguage } = useLanguage();
+  const label = language === "so" ? "Luqad" : language === "es" ? "Idioma" : "Language";
 
   return (
     <label className="relative inline-flex h-10 w-10 shrink-0">
-      <span className="sr-only">Language</span>
+      <span className="sr-only">{label}</span>
       <select
-        aria-label="Language"
+        aria-label={label}
         className="peer absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0"
         onChange={(event) => {
           const nextLanguage = event.target.value;

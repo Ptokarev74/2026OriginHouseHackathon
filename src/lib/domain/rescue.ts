@@ -70,25 +70,33 @@ export function assessBlocker(
 
   if (calculatedDays === undefined) {
     findings.push(
-      language === "es"
+      language === "so"
+        ? "Waqti kama dambays ah oo lagu kalsoonaan karo lama helin; ka xaqiiji taariikhda ogeysiiska asalka ah."
+        : language === "es"
         ? "No se encontro una fecha limite confiable; confirma la fecha en el aviso original."
         : "No reliable deadline was found; confirm the date on the original notice.",
     );
   } else if (calculatedDays < 0) {
     findings.push(
-      language === "es"
+      language === "so"
+        ? `Waqtiga kama dambaysta ah ee ku qoran wuxuu u muuqdaa inuu dhaafay ${Math.abs(calculatedDays)} maalmood ka hor.`
+        : language === "es"
         ? `La fecha limite indicada parece haber pasado hace ${Math.abs(calculatedDays)} dia${Math.abs(calculatedDays) === 1 ? "" : "s"}.`
         : `The listed deadline appears to have passed ${Math.abs(calculatedDays)} day${Math.abs(calculatedDays) === 1 ? "" : "s"} ago.`,
     );
   } else if (calculatedDays <= 7) {
     findings.push(
-      language === "es"
+      language === "so"
+        ? `Waqtiga kama dambaysta ah ee ku qoran waa ${calculatedDays} maalmood gudahood.`
+        : language === "es"
         ? `La fecha limite indicada es en ${calculatedDays} dia${calculatedDays === 1 ? "" : "s"}.`
         : `The listed deadline is in ${calculatedDays} day${calculatedDays === 1 ? "" : "s"}.`,
     );
   } else {
     findings.push(
-      language === "es"
+      language === "so"
+        ? `Waqtiga kama dambaysta ah ee ku qoran waa ${calculatedDays} maalmood gudahood.`
+        : language === "es"
         ? `La fecha limite indicada es en ${calculatedDays} dia${calculatedDays === 1 ? "" : "s"}.`
         : `The listed deadline is in ${calculatedDays} day${calculatedDays === 1 ? "" : "s"}.`,
     );
@@ -96,7 +104,9 @@ export function assessBlocker(
 
   if (parsedNotice.missingRequirements.length > 0) {
     findings.push(
-      language === "es"
+      language === "so"
+        ? `Shuruud maqan ayaa la aqoonsaday: ${parsedNotice.missingRequirements.join(", ")}.`
+        : language === "es"
         ? `Requisito faltante identificado: ${parsedNotice.missingRequirements.join(", ")}.`
         : `Missing requirement identified: ${parsedNotice.missingRequirements.join(", ")}.`,
     );
@@ -104,7 +114,9 @@ export function assessBlocker(
 
   if (parsedNotice.riskLanguage.length > 0) {
     findings.push(
-      language === "es"
+      language === "so"
+        ? `Luqad halis ah ayaa la helay: ${parsedNotice.riskLanguage.join(", ")}.`
+        : language === "es"
         ? `Lenguaje de riesgo detectado: ${parsedNotice.riskLanguage.join(", ")}.`
         : `Risk language detected: ${parsedNotice.riskLanguage.join(", ")}.`,
     );
@@ -112,21 +124,29 @@ export function assessBlocker(
 
   if (parsedNotice.extractionConfidence === "low") {
     findings.push(
-      language === "es"
+      language === "so"
+        ? "Kalsoonida soo saaristu way hooseysaa; qof waa inuu xaqiijiyaa ogeysiiska ka hor ficil."
+        : language === "es"
         ? "La confianza de extraccion es baja; una persona debe verificar el aviso antes de actuar."
         : "Extraction confidence is low; a human should verify the notice before acting.",
     );
   }
 
   const nextAction = escalationRecommended
-    ? language === "es"
+    ? language === "so"
+      ? "Diyaari xirmada kor-u-qaadista ee hage, u-doodaha, ama shaqaale kiis."
+      : language === "es"
       ? "Prepara el paquete de escalamiento para una persona navegadora, defensora o trabajadora de caso."
       : "Prepare the escalation packet for a navigator, advocate, or case worker."
     : parsedNotice.missingRequirements.length > 0
-      ? language === "es"
+      ? language === "so"
+        ? `Ururi ${parsedNotice.missingRequirements[0]} oo ku lifaaq jawaabta cusboonaysiinta.`
+        : language === "es"
         ? `Reune ${parsedNotice.missingRequirements[0]} y adjuntalo a la respuesta de renovacion.`
         : `Gather ${parsedNotice.missingRequirements[0]} and attach it to the renewal response.`
-      : language === "es"
+      : language === "so"
+        ? "Dib u eeg xirmada oo u diyaari gudbin."
+        : language === "es"
         ? "Revisa el paquete y preparalo para el envio."
         : "Review the packet and prepare it for submission.";
 
@@ -152,21 +172,27 @@ export function determineRescuePath(
 
   if (assessment.escalationRecommended) {
     escalationTriggers.push(
-      language === "es"
+      language === "so"
+        ? "Arrintu way is khilaafsan tahay, ma cadda, ama waqtigii kama dambaysta ahaa wuu dhaafay."
+        : language === "es"
         ? "El problema esta en conflicto, no es claro o paso la fecha limite."
         : "Issue is conflicting, unclear, or past deadline.",
     );
   }
   if (parsedNotice.extractionConfidence === "low") {
     escalationTriggers.push(
-      language === "es"
+      language === "so"
+        ? "Meelo muhiim ah oo ogeysiiska ah si kalsooni leh looma soo saari karin."
+        : language === "es"
         ? "Campos importantes del aviso no pudieron extraerse con confianza."
         : "Important notice fields could not be extracted with confidence.",
     );
   }
   if (assessment.urgency === "urgent" || assessment.urgency === "overdue") {
     escalationTriggers.push(
-      language === "es"
+      language === "so"
+        ? "Waqtiga kama dambaysta ah waa degdeg ama wuu dhaafi karay."
+        : language === "es"
         ? "La fecha limite es urgente o pudo haber pasado."
         : "Deadline is urgent or may have passed.",
     );
@@ -177,11 +203,19 @@ export function determineRescuePath(
       pathType: "escalation",
       status: "escalation_needed",
       summary:
-        language === "es"
+        language === "so"
+          ? "Kiiskan waa in loo gudbiyaa hage, u-doodaha, ama shaqaale kiis ka hor inta qofku ku tiirsanaan tallaabooyin uu isagu sameeyo."
+          : language === "es"
           ? "Este caso debe enviarse a una persona navegadora, defensora o trabajadora de caso antes de que la persona dependa de pasos de autoservicio."
           : "This case should be routed to a navigator, advocate, or case worker before the patient relies on self-service steps.",
       steps:
-        language === "es"
+        language === "so"
+          ? [
+              "Diyaari soo koobid gaaban oo arrinta ah oo leh nooca ogeysiiska, waqtiga kama dambaysta ah, iyo faahfaahinta is khilaafsan ama dhaaftay.",
+              "Ku lifaaq ogeysiiska iyo caddeyn kasta oo hore u diyaar ah.",
+              "Weydii qofka dib-u-eegaya in racfaan, dib-u-soo-celin, ama sixid gacanta ah ay tahay waddada saxda ah.",
+            ]
+          : language === "es"
           ? [
               "Prepara un resumen corto del problema con el tipo de aviso, fecha limite y detalles en conflicto o vencidos.",
               "Adjunta el aviso y cualquier verificacion ya disponible.",
@@ -202,11 +236,19 @@ export function determineRescuePath(
       pathType: "renewal_completion",
       status: "awaiting_documents",
       summary:
-        language === "es"
+        language === "so"
+          ? "Waddada badbaadintu waa in la dhammaystiro xirmada cusboonaysiinta oo la gudbiyo qaybaha maqan ka hor waqtiga kama dambaysta ah."
+          : language === "es"
           ? "La ruta de rescate es completar el paquete de renovacion y enviar las secciones faltantes antes de la fecha limite."
           : "The rescue path is to complete the renewal packet and submit the missing sections before the deadline.",
       steps:
-        language === "es"
+        language === "so"
+          ? [
+              "Dhammaystir qayb kasta oo bannaan oo ku jirta foomka cusboonaysiinta.",
+              "Ku lifaaq dukumiintiyada caddeynta ee la codsaday.",
+              "Kaydi nuqul xirmada ah iyo xaqiijinta gudbinta.",
+            ]
+          : language === "es"
           ? [
               "Completa cada seccion en blanco del formulario de renovacion.",
               "Adjunta los documentos de verificacion solicitados.",
@@ -226,11 +268,19 @@ export function determineRescuePath(
     pathType: assessment.urgency === "urgent" ? "deadline_rescue" : "document_rescue",
     status: parsedNotice.missingRequirements.length > 0 ? "awaiting_documents" : "ready_to_submit",
     summary:
-      language === "es"
+      language === "so"
+        ? "Waddada badbaadintu waa in la ururiyo shayga maqan ee la tilmaamay lana diyaariyo xirmada jawaabta."
+        : language === "es"
         ? "La ruta de rescate es reunir el item faltante indicado y preparar el paquete de respuesta."
         : "The rescue path is to gather the targeted missing item and prepare the response packet.",
     steps:
-      language === "es"
+      language === "so"
+        ? [
+            "Ururi caddeynta maqan ee saxda ah ee ogeysiisku sheegay.",
+            "Ku xir dukumiintiga lambarka kiiska Medicaid ama magaca qofka.",
+            "Ku gudbi kanaalka ku habboon ee ogeysiiska ku qoran oo kaydi xaqiijinta.",
+          ]
+        : language === "es"
         ? [
             "Reune la verificacion faltante exacta indicada en el aviso.",
             "Relaciona el documento con el numero de caso de Medicaid o el nombre de la persona.",
@@ -274,28 +324,42 @@ export function verifyReadiness(
     status,
     checks: [
       parsedNotice.deadlineDate
-        ? language === "es"
+        ? language === "so"
+          ? `Waqtiga kama dambaysta ah waa la qabtay: ${parsedNotice.deadlineDate}.`
+          : language === "es"
           ? `Fecha limite capturada: ${parsedNotice.deadlineDate}.`
           : `Deadline captured: ${parsedNotice.deadlineDate}.`
-        : language === "es"
+        : language === "so"
+          ? "Waqtiga kama dambaysta ah wuxuu u baahan yahay xaqiijin bini'aadan."
+          : language === "es"
           ? "La fecha limite necesita confirmacion humana."
           : "Deadline needs human confirmation.",
       parsedNotice.blockerLabel
-        ? language === "es"
+        ? language === "so"
+          ? `Xannibaadda waa la qabtay: ${parsedNotice.blockerLabel}.`
+          : language === "es"
           ? `Bloqueo capturado: ${parsedNotice.blockerLabel}.`
           : `Blocker captured: ${parsedNotice.blockerLabel}.`
-        : language === "es"
+        : language === "so"
+          ? "Xannibaaddu waxay u baahan tahay xaqiijin bini'aadan."
+          : language === "es"
           ? "El bloqueo necesita confirmacion humana."
           : "Blocker needs human confirmation.",
       readyToSubmit
-        ? language === "es"
+        ? language === "so"
+          ? "Dhammaan dukumiintiyada loo baahan yahay waxay u muuqdaan inay ku jiraan xirmada demo-ga."
+          : language === "es"
           ? "Todos los documentos requeridos parecen estar presentes en el paquete demo."
           : "All required documents appear present in the demo packet."
         : shouldEscalate
-          ? language === "es"
+          ? language === "so"
+            ? "Kiiska waa in kor loo qaadaa ka hor gudbinta."
+            : language === "es"
             ? "El caso debe escalarse antes del envio."
             : "Case should be escalated before submission."
-          : language === "es"
+          : language === "so"
+            ? "Ugu yaraan hal dukumiinti oo loo baahan yahay ayaa weli maqan."
+            : language === "es"
             ? "Todavia falta al menos un documento requerido."
             : "At least one required document is still missing.",
     ],

@@ -1,5 +1,5 @@
 export type AppLanguage = "en" | "es" | "so" | "fr";
-export type CopyLanguage = Exclude<AppLanguage, "so" | "fr">;
+export type CopyLanguage = Exclude<AppLanguage, "fr">;
 
 export type LocalizedText = Record<AppLanguage, string>;
 
@@ -19,5 +19,9 @@ export function isAppLanguage(value: string | null): value is AppLanguage {
 }
 
 export function copyLanguage(language: AppLanguage): CopyLanguage {
-  return language === "es" ? "es" : "en";
+  if (language === "es" || language === "so") {
+    return language;
+  }
+
+  return "en";
 }

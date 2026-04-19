@@ -19,7 +19,71 @@ import {
   caseStatusLabel,
   getDashboardCopy,
   noticeTypeLabel,
+  urgencyLabel,
 } from "@/lib/i18n/dashboard";
+import type { AppLanguage } from "@/lib/i18n/types";
+
+function liveGuidanceStatusLabel(
+  language: AppLanguage,
+  status: "idle" | "loading" | "success" | "error",
+  verificationStatus?: string,
+) {
+  if (status === "success") {
+    if (language === "so") {
+      return verificationStatus === "verified" ? "LA XAQIIJIYAY" : "DIB U EEG";
+    }
+    if (language === "es") {
+      return verificationStatus === "verified" ? "VERIFICADO" : "REVISAR";
+    }
+
+    return verificationStatus?.toUpperCase() ?? "SUCCESS";
+  }
+
+  if (language === "so") {
+    if (status === "loading") return "RAADINAYA";
+    if (status === "error") return "CILAD";
+    return "SUGAN";
+  }
+
+  if (language === "es") {
+    if (status === "loading") return "BUSCANDO";
+    if (status === "error") return "ERROR";
+    return "INACTIVO";
+  }
+
+  return status.toUpperCase();
+}
+
+function rescuePathTypeLabel(language: AppLanguage, pathType: string) {
+  const labels: Record<string, Record<AppLanguage, string>> = {
+    document_rescue: {
+      en: "Document rescue",
+      es: "Rescate de documentos",
+      so: "Badbaadin dukumiinti",
+      fr: "Document rescue",
+    },
+    deadline_rescue: {
+      en: "Deadline rescue",
+      es: "Rescate de fecha limite",
+      so: "Badbaadin waqti",
+      fr: "Deadline rescue",
+    },
+    renewal_completion: {
+      en: "Renewal completion",
+      es: "Completar renovacion",
+      so: "Dhammaystir cusboonaysiin",
+      fr: "Renewal completion",
+    },
+    escalation: {
+      en: "Escalation",
+      es: "Escalamiento",
+      so: "Kor-u-qaadis",
+      fr: "Escalation",
+    },
+  };
+
+  return labels[pathType]?.[language] ?? pathType.replaceAll("_", " ");
+}
 
 export default function RescuePathPage() {
   const router = useRouter();
@@ -131,12 +195,14 @@ export default function RescuePathPage() {
               <div>
                 <div className="mb-5 flex flex-wrap items-center gap-3">
                 <Badge tone={result.blockerAssessment.urgency === "urgent" || result.blockerAssessment.urgency === "overdue" ? "danger" : "warn"}>
-                  {result.blockerAssessment.urgency.toUpperCase()}
+                  {urgencyLabel(language, result.blockerAssessment.urgency).toUpperCase()}
                 </Badge>
                 <Badge tone={result.readinessCheck.shouldEscalate ? "danger" : "good"}>
                   {caseStatusLabel(language, result.rescuePath.status).toUpperCase()}
                 </Badge>
-                <Badge tone="blue">{result.rescuePath.pathType.replaceAll("_", " ")}</Badge>
+                <Badge tone="blue">
+                  {rescuePathTypeLabel(language, result.rescuePath.pathType)}
+                </Badge>
                 </div>
                 <p className="text-lg leading-8 text-slate-800">{result.rescuePath.summary}</p>
               </div>
@@ -170,9 +236,11 @@ export default function RescuePathPage() {
                           : "neutral"
                     }
                   >
-                    {liveGuidanceStatus === "success"
-                      ? liveGuidance?.status.toUpperCase()
-                      : liveGuidanceStatus.toUpperCase()}
+                    {liveGuidanceStatusLabel(
+                      language,
+                      liveGuidanceStatus,
+                      liveGuidance?.status,
+                    )}
                   </Badge>
                   {liveGuidance?.sources.length ? (
                     <Badge tone="blue">

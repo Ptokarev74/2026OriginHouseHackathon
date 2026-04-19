@@ -34,6 +34,87 @@ function splitList(value?: string) {
     .filter(Boolean);
 }
 
+function noticeTypeCopy(noticeType: NoticeType, language: AppLanguage) {
+  const labels: Record<CopyLanguage, Record<NoticeType, string>> = {
+    en: {
+      closure: "closure",
+      renewal: "renewal",
+      termination: "termination",
+      action_required: "action-required notice",
+      case_status: "case status letter",
+      uploaded_text: "uploaded text",
+    },
+    es: {
+      closure: "cierre",
+      renewal: "renovacion",
+      termination: "terminacion",
+      action_required: "aviso de accion requerida",
+      case_status: "carta de estado del caso",
+      uploaded_text: "texto subido",
+    },
+    so: {
+      closure: "xiritaan",
+      renewal: "cusboonaysiin",
+      termination: "joojin",
+      action_required: "ogeysiis ficil loo baahan yahay",
+      case_status: "warqad xaalad kiis",
+      uploaded_text: "qoraal la raray",
+    },
+  };
+
+  return labels[copyLanguage(language)][noticeType];
+}
+
+function localizeRequirement(value: string, language: AppLanguage) {
+  const normalized = value.toLowerCase();
+
+  if (copyLanguage(language) === "so") {
+    if (/income|pay stub|wage|earnings|employer letter|income statement|ingresos/i.test(normalized)) {
+      return "caddeyn dakhli";
+    }
+    if (/residency|address|utility bill|lease|residencia/i.test(normalized)) {
+      return "caddeyn deggenaansho";
+    }
+    if (/renewal|redetermination|signature|renovacion/i.test(normalized)) {
+      return "foom cusboonaysiin oo dhammeystiran";
+    }
+    if (/identity|photo id|identification|date of birth|identidad/i.test(normalized)) {
+      return "xaqiijin aqoonsi";
+    }
+  }
+
+  if (copyLanguage(language) === "es") {
+    if (/income|pay stub|wage|earnings|employer letter|income statement/i.test(normalized)) {
+      return "prueba de ingresos";
+    }
+    if (/residency|address|utility bill|lease/i.test(normalized)) {
+      return "prueba de residencia";
+    }
+    if (/renewal|redetermination|signature/i.test(normalized)) {
+      return "formulario de renovacion completo";
+    }
+    if (/identity|photo id|identification|date of birth/i.test(normalized)) {
+      return "verificacion de identidad";
+    }
+  }
+
+  return value;
+}
+
+function localizeLanguagePreference(
+  value: string | undefined,
+  language: AppLanguage,
+) {
+  if (!value) return undefined;
+  if (copyLanguage(language) === "so" && /english|spanish|somali|french|espanol/i.test(value)) {
+    return "Soomaali";
+  }
+  if (copyLanguage(language) === "es" && /english|spanish|somali|french/i.test(value)) {
+    return "Espanol";
+  }
+  return value;
+}
+
 function findDate(content: string) {
   const labeledDate = findValue(content, [
     "Deadline",
@@ -100,6 +181,15 @@ function inferRiskLanguage(content: string, language: AppLanguage) {
       deadline: "Lenguaje de fecha limite encontrado",
       conflict: "Lenguaje de conflicto de elegibilidad encontrado",
     },
+    so: {
+      closure: "Luqad xiritaan ayaa la helay",
+      termination: "Luqad joojin ayaa la helay",
+      renewal: "Cusboonaysiin ayaa ficil u baahan",
+      failure: "Luqad jawaab la'aan ayaa la helay",
+      verification: "Luqad caddeyn maqan ayaa la helay",
+      deadline: "Luqad waqti kama dambays ah ayaa la helay",
+      conflict: "Luqad is-khilaaf u-qalmitaan ayaa la helay",
+    },
   };
 
   return signals
@@ -120,7 +210,7 @@ function inferMissingRequirements(content: string, language: AppLanguage) {
   );
 
   if (labeled.length > 0) {
-    return labeled;
+    return Array.from(new Set(labeled.map((item) => localizeRequirement(item, language))));
   }
 
   const requirements = [
@@ -142,6 +232,12 @@ function inferMissingRequirements(content: string, language: AppLanguage) {
       renewal: "formulario de renovacion completo",
       identity: "verificacion de identidad",
     },
+    so: {
+      income: "caddeyn dakhli",
+      residency: "caddeyn deggenaansho",
+      renewal: "foom cusboonaysiin oo dhammeystiran",
+      identity: "xaqiijin aqoonsi",
+    },
   };
 
   return requirements
@@ -149,7 +245,11 @@ function inferMissingRequirements(content: string, language: AppLanguage) {
     .map(([key]) => labels[copyLanguage(language)][key]);
 }
 
-function inferProvidedDocuments(documents: SourceDocument[], combined: string) {
+function inferProvidedDocuments(
+  documents: SourceDocument[],
+  combined: string,
+  language: AppLanguage,
+) {
   const labeled = splitList(
     findValue(combined, [
       "Uploaded documents",
@@ -163,7 +263,10 @@ function inferProvidedDocuments(documents: SourceDocument[], combined: string) {
     .filter((document) => document.documentType === "verification_document")
     .map((document) => document.title);
 
-  return Array.from(new Set([...labeled, ...inferred]));
+  return Array.from(new Set([
+    ...labeled.map((item) => localizeRequirement(item, language)),
+    ...inferred,
+  ]));
 }
 
 function inferBlockerType(content: string, missingRequirements: string[], deadlineDate?: string): BlockerType {
@@ -212,6 +315,15 @@ function blockerLabel(blockerType: BlockerType, language: AppLanguage) {
       upcoming_deadline: "Fecha limite de respuesta proxima",
       manual_review: "Problema poco claro que necesita revision manual",
     },
+    so: {
+      missing_income_proof: "Caddeyn dakhli ayaa maqan",
+      missing_residency_proof: "Caddeyn deggenaansho ayaa maqan",
+      incomplete_renewal: "Waraaqaha cusboonaysiinta ayaan dhammeystirnayn",
+      eligibility_inconsistency: "Macluumaadka u-qalmitaanka ayaa is khilaafsan",
+      missed_deadline: "Waqtiga kama dambaysta ah wuu dhaafi karay",
+      upcoming_deadline: "Waqti jawaab oo soo socda",
+      manual_review: "Arrin aan caddayn oo u baahan dib-u-eegis gacanta ah",
+    },
   };
 
   return labels[copyLanguage(language)][blockerType];
@@ -250,12 +362,34 @@ function inferIssueExplanation(
   language: AppLanguage,
   deadlineDate?: string,
 ) {
-  const noticeCopy = noticeType.replaceAll("_", " ");
+  const noticeCopy = noticeTypeCopy(noticeType, language);
   const dueCopy = deadlineDate
-    ? language === "es"
+    ? language === "so"
+      ? ` ka hor ${deadlineDate}`
+      : language === "es"
       ? ` antes de ${deadlineDate}`
       : ` by ${deadlineDate}`
     : "";
+
+  if (language === "so") {
+    if (blockerType === "missing_income_proof") {
+      return `Caymisku halis ayuu ku jiraa sababtoo ah ogeysiiskan ${noticeCopy} wuxuu codsanayaa caddeyn dakhli${dueCopy}.`;
+    }
+    if (blockerType === "missing_residency_proof") {
+      return `Caymisku halis ayuu ku jiraa sababtoo ah ogeysiiskan ${noticeCopy} wuxuu codsanayaa caddeyn deggenaansho${dueCopy}.`;
+    }
+    if (blockerType === "incomplete_renewal") {
+      return `Caymisku halis ayuu ku jiraa sababtoo ah waraaqaha cusboonaysiintu waxay u muuqdaan kuwo aan dhammeystirnayn${dueCopy}.`;
+    }
+    if (blockerType === "eligibility_inconsistency") {
+      return "Ogeysiisku wuxuu leeyahay macluumaad u-qalmitaan oo is khilaafsan, sidaas darteed hage waa inuu eego ka hor gudbinta.";
+    }
+    if (blockerType === "missed_deadline") {
+      return "Ogeysiisku wuxuu soo jeedinayaa in waqtigii kama dambaysta ahaa laga yaabo inuu dhaafay, sidaas darteed kiiska waa in loo kor qaadaa dib-u-eegis racfaan ama dib-u-soo-celin.";
+    }
+
+    return `Ogeysiisku wuxuu leeyahay waqti kama dambays ah oo ficil ah${dueCopy}, laakiin shuruudda saxda ah waa in la xaqiijiyaa.`;
+  }
 
   if (language === "es") {
     if (blockerType === "missing_income_proof") {
@@ -307,15 +441,19 @@ function summarizeDocument(
     .map((line) => line.trim())
     .find(Boolean);
 
-  if (firstLine && firstLine.length <= 120) {
+  if (firstLine && firstLine.length <= 120 && copyLanguage(language) !== "so") {
     return language === "es"
       ? `${firstLine}. ${riskLanguage.length} senal${riskLanguage.length === 1 ? "" : "es"} de riesgo encontrada${riskLanguage.length === 1 ? "" : "s"}.`
       : `${firstLine}. ${riskLanguage.length} risk signal${riskLanguage.length === 1 ? "" : "s"} found.`;
   }
 
+  if (language === "so") {
+    return `Qoraalka Medicaid (${noticeTypeCopy(noticeType, language)}) waxaa lagu eegay gudaha. ${riskLanguage.length} calaamad halis ah ayaa la helay.`;
+  }
+
   return language === "es"
-    ? `Texto de Medicaid (${noticeType.replaceAll("_", " ")}) revisado localmente. ${riskLanguage.length} senal${riskLanguage.length === 1 ? "" : "es"} de riesgo encontrada${riskLanguage.length === 1 ? "" : "s"}.`
-    : `Medicaid ${noticeType.replaceAll("_", " ")} text reviewed locally. ${riskLanguage.length} risk signal${riskLanguage.length === 1 ? "" : "s"} found.`;
+    ? `Texto de Medicaid (${noticeTypeCopy(noticeType, language)}) revisado localmente. ${riskLanguage.length} senal${riskLanguage.length === 1 ? "" : "es"} de riesgo encontrada${riskLanguage.length === 1 ? "" : "s"}.`
+    : `Medicaid ${noticeTypeCopy(noticeType, language)} text reviewed locally. ${riskLanguage.length} risk signal${riskLanguage.length === 1 ? "" : "s"} found.`;
 }
 
 function getConfidence(parsedFieldCount: number): ParsedNotice["extractionConfidence"] {
@@ -342,12 +480,14 @@ export function parseDocuments(
   const deadlineDate = findDate(combined);
   const riskLanguage = inferRiskLanguage(combined, language);
   const missingRequirements = inferMissingRequirements(combined, language);
-  const providedDocuments = inferProvidedDocuments(documents, combined);
+  const providedDocuments = inferProvidedDocuments(documents, combined, language);
   const blockerType = inferBlockerType(combined, missingRequirements, deadlineDate);
   const urgency = inferUrgency(combined, blockerType);
-  const languagePreference =
+  const languagePreference = localizeLanguagePreference(
     findValue(combined, ["Language preference", "Preferred language"]) ??
-    preferences.languagePreference;
+    preferences.languagePreference,
+    language,
+  );
   const contactMethod =
     (findValue(combined, ["Contact method", "Communication preference"]) as
       | CommunicationPreferences["contactMethod"]

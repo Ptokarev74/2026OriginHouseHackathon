@@ -15,7 +15,7 @@ import { useLanguage } from "@/components/i18n/LanguageProvider";
 import { useDashboard } from "@/components/dashboard/DashboardContext";
 import { Section, classNames } from "@/components/dashboard/ui";
 import type { FileMessageTone } from "@/components/dashboard/DashboardContext";
-import { getDashboardCopy } from "@/lib/i18n/dashboard";
+import { contactMethodLabel, getDashboardCopy } from "@/lib/i18n/dashboard";
 
 function fileMessageClasses(tone: FileMessageTone) {
   if (tone === "success") {
@@ -43,6 +43,14 @@ export default function IntakePage() {
   const router = useRouter();
   const { language } = useLanguage();
   const copy = getDashboardCopy(language);
+  const defaultLanguagePreference =
+    language === "so" ? "Soomaali" : language === "es" ? "Espanol" : "English";
+  const extractingTextLabel =
+    language === "so"
+      ? "Qoraal ayaa laga soo saaraya..."
+      : language === "es"
+        ? "Extrayendo texto..."
+        : "Extracting text...";
   const {
     mode,
     setMode,
@@ -182,8 +190,11 @@ export default function IntakePage() {
                   <dt className="text-slate-500">{copy.intake.preference}</dt>
                   <dd className="mt-1 font-semibold text-slate-950">
                     {selectedCase.preferences.languagePreference ??
-                      (language === "es" ? "Espanol" : "English")} /{" "}
-                    {selectedCase.preferences.contactMethod ?? "SMS"}
+                      defaultLanguagePreference} /{" "}
+                    {contactMethodLabel(
+                      language,
+                      selectedCase.preferences.contactMethod ?? "SMS",
+                    )}
                   </dd>
                 </div>
               </dl>
@@ -273,10 +284,10 @@ export default function IntakePage() {
                   </div>
                 </div>
                 {isExtracting ? (
-                <div className="mt-4 rounded-lg border border-sky-200 bg-sky-50 p-4">
+                  <div className="mt-4 rounded-lg border border-sky-200 bg-sky-50 p-4">
                     <div className="flex items-center gap-2 text-sm font-semibold text-sky-950">
                       <Loader2 className="h-4 w-4 animate-spin text-sky-700" />
-                      {ocrState.label ?? "Extracting text..."}
+                      {ocrState.label ?? extractingTextLabel}
                     </div>
                     <div className="mt-2 h-2 overflow-hidden rounded-full bg-white">
                       <div

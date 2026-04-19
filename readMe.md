@@ -67,7 +67,7 @@ Manual test plan:
 - Presents a Notice-to-Rescue landing page with a dashboard CTA.
 - Lets a user choose one of three fictional Medicaid notice packets.
 - Supports pasting document text or uploading a `.txt` file locally in the browser.
-- Gracefully declines PDF parsing and asks the user to paste text instead.
+- Supports local OCR for uploaded PDF, PNG, JPG, and JPEG notice files.
 - Extracts editable notice fields before workflow execution.
 - Runs deterministic local workflow logic to identify blockers and rescue paths.
 - Verifies live public-web guidance with server-side TinyFish Search and Fetch.
@@ -94,6 +94,31 @@ the agent runs.
 - `localStorage` stores demo mode and communication preferences.
 - `sessionStorage` stores pasted or uploaded text for the current browser session only.
 - No backend, database, auth service, document store, or external API is included.
+
+## Local OCR Uploads
+
+The intake screen accepts `.txt`, `.pdf`, `.png`, `.jpg`, and `.jpeg` files.
+Text files are read with the browser `FileReader`. PDF and image files are
+processed with Tesseract.js in the browser; PDFs are rendered page-by-page with
+pdf.js, then each rendered page is OCR-read locally.
+
+OCR is limited to a hackathon-friendly demo size: files up to 10 MB, text files
+up to 1 MB, and PDFs up to 5 pages. The app serves the Tesseract worker,
+English traineddata, OCR core, and pdf.js worker from local `public/vendor`
+assets and disables Tesseract traineddata caching, so OCR does not require an
+external OCR API or persistent document storage.
+
+Known limitations:
+
+- OCR quality depends on scan quality, rotation, handwriting, and image contrast.
+- Only English OCR data is bundled.
+- Large or complex PDFs may time out; paste text manually if extraction fails.
+- OCR only produces editable text, then the same deterministic demo workflow
+  parses that text.
+
+This remains demo-only. Do not use real PHI, do not rely on it for eligibility
+determinations, and verify case-specific notice details with the appropriate
+agency or qualified human reviewer.
 
 ## Sample Data
 

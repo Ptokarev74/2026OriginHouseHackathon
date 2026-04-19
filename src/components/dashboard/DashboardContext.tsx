@@ -4,6 +4,12 @@ import React, { createContext, useContext, useEffect, useMemo, useState } from "
 import { getSampleCases } from "@/lib/data";
 import { parseDocuments } from "@/lib/domain/parsing";
 import {
+  getOcrFileKind,
+  getOcrFileLimitMessage,
+  ocrFileLimits,
+  type OcrProgress,
+} from "@/lib/ocr/browserOcr";
+import {
   runNoticeToRescueAgent,
   workflowSteps,
   type WorkflowStepId,
@@ -22,6 +28,14 @@ import type {
 export type WorkflowStatus = "idle" | "running" | "complete";
 export type IntakeMode = "sample" | "upload";
 export type LiveGuidanceStatus = "idle" | "loading" | "success" | "error";
+export type FileMessageTone = "info" | "success" | "warn" | "error";
+
+export type OcrState = {
+  status: "idle" | "extracting" | "success" | "error";
+  progress: number;
+  label?: string;
+  detail?: string;
+};
 
 const modeStorageKey = "notice-rescue-mode";
 const preferencesStorageKey = "notice-rescue-preferences";
@@ -59,9 +73,16 @@ function getStoredSessionText() {
 }
 
 function buildUploadedDocument(text: string, sourceKind: DocumentSourceKind): SourceDocument {
+  const titles: Record<Exclude<DocumentSourceKind, "sample">, string> = {
+    pasted: "Pasted Medicaid notice text",
+    txt_upload: "Uploaded text file",
+    pdf_ocr: "OCR text from uploaded PDF",
+    image_ocr: "OCR text from uploaded image",
+  };
+
   return {
     id: "uploaded-local-medicaid-notice",
-    title: sourceKind === "txt_upload" ? "Uploaded text file" : "Pasted Medicaid notice text",
+    title: sourceKind === "sample" ? "Sample notice" : titles[sourceKind],
     documentType: "uploaded_text",
     content: text,
   };
@@ -90,6 +111,16 @@ function wait(milliseconds: number) {
   return new Promise((resolve) => window.setTimeout(resolve, milliseconds));
 }
 
+function readTextFile(file: File) {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onload = () => resolve(String(reader.result ?? ""));
+    reader.onerror = () => reject(new Error("The file could not be read."));
+    reader.readAsText(file);
+  });
+}
+
 interface DashboardContextType {
   mode: IntakeMode;
   setMode: (mode: IntakeMode) => void;
@@ -103,7 +134,9 @@ interface DashboardContextType {
   updateUploadText: (value: string) => void;
   uploadSourceKind: DocumentSourceKind;
   fileMessage?: string;
-  handleFile: (file: File) => void;
+  fileMessageTone: FileMessageTone;
+  ocrState: OcrState;
+  handleFile: (file: File) => Promise<void>;
   reviewNotice: ParsedNotice | undefined;
   setReviewNotice: React.Dispatch<React.SetStateAction<ParsedNotice | undefined>>;
   status: WorkflowStatus;
@@ -130,6 +163,11 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
   const [uploadText, setUploadText] = useState(getStoredSessionText);
   const [uploadSourceKind, setUploadSourceKind] = useState<DocumentSourceKind>("pasted");
   const [fileMessage, setFileMessage] = useState<string>();
+  const [fileMessageTone, setFileMessageTone] = useState<FileMessageTone>("info");
+  const [ocrState, setOcrState] = useState<OcrState>({
+    status: "idle",
+    progress: 0,
+  });
 
   const [reviewNotice, setReviewNotice] = useState<ParsedNotice | undefined>(() => {
     const storedMode = getStoredMode();
@@ -201,6 +239,27 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
     setLiveGuidanceError(undefined);
   }
 
+  function setFileStatus(message: string, tone: FileMessageTone = "info") {
+    setFileMessage(message);
+    setFileMessageTone(tone);
+  }
+
+  function applyUploadText(
+    text: string,
+    sourceKind: Extract<DocumentSourceKind, "pasted" | "txt_upload" | "pdf_ocr" | "image_ocr">,
+  ) {
+    const parsed = text.trim()
+      ? parseForReview([buildUploadedDocument(text, sourceKind)], preferences, sourceKind)
+      : undefined;
+
+    setUploadText(text);
+    setUploadSourceKind(sourceKind);
+    setReviewNotice(parsed);
+    resetRunState();
+
+    return parsed;
+  }
+
   function setMode(nextMode: IntakeMode) {
     setModeState(nextMode);
     resetRunState();
@@ -242,54 +301,128 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
   }
 
   function updateUploadText(value: string) {
-    setUploadText(value);
-    setUploadSourceKind("pasted");
+    applyUploadText(value, "pasted");
     setFileMessage(undefined);
-
-    if (value.trim()) {
-      setReviewNotice(
-        parseForReview([buildUploadedDocument(value, "pasted")], preferences, "pasted"),
-      );
-    } else {
-      setReviewNotice(undefined);
-    }
-    resetRunState();
+    setFileMessageTone("info");
+    setOcrState({ status: "idle", progress: 0 });
   }
 
-  function handleFile(file: File) {
+  async function handleFile(file: File) {
     const lowerName = file.name.toLowerCase();
-    if (lowerName.endsWith(".pdf") || file.type === "application/pdf") {
-      setFileMessage(
-        "PDF parsing is not included in this local prototype. Paste text from the PDF into the notice box to continue.",
-      );
-      setUploadSourceKind("pdf_unsupported");
+    const ocrKind = getOcrFileKind(file);
+
+    setFileMessage(undefined);
+    setFileMessageTone("info");
+    setOcrState({ status: "idle", progress: 0 });
+    resetRunState();
+
+    if (ocrKind) {
+      const limitMessage = getOcrFileLimitMessage(file);
+
+      if (limitMessage) {
+        setUploadText("");
+        setReviewNotice(undefined);
+        setFileStatus(limitMessage, "error");
+        setOcrState({ status: "error", progress: 0 });
+        return;
+      }
+
+      setUploadText("");
+      setUploadSourceKind(ocrKind === "pdf" ? "pdf_ocr" : "image_ocr");
+      setReviewNotice(undefined);
+      setOcrState({
+        status: "extracting",
+        progress: 0.02,
+        label: "Extracting text...",
+        detail:
+          ocrKind === "pdf"
+            ? "Rendering PDF pages locally"
+            : "Preparing image locally",
+      });
+
+      try {
+        const { extractTextFromOcrFile } = await import("@/lib/ocr/browserOcr");
+        const result = await extractTextFromOcrFile(file, (progress: OcrProgress) => {
+          setOcrState({
+            status: "extracting",
+            progress: progress.progress,
+            label: progress.label,
+            detail: progress.detail,
+          });
+        });
+        const extractedText = result.text.trim();
+
+        if (extractedText.length < 40) {
+          setUploadText(extractedText);
+          setUploadSourceKind(result.sourceKind);
+          setReviewNotice(undefined);
+          setFileStatus(
+            "OCR finished, but it did not find enough notice text to parse. Paste the notice text manually to continue.",
+            "error",
+          );
+          setOcrState({
+            status: "error",
+            progress: 1,
+            label: "Text extraction incomplete",
+          });
+          return;
+        }
+
+        const parsed = applyUploadText(extractedText, result.sourceKind);
+        const confidenceWarning =
+          result.confidence < 55 || parsed?.extractionConfidence === "low";
+
+        setOcrState({
+          status: "success",
+          progress: 1,
+          label: "Text extracted",
+          detail:
+            result.sourceKind === "pdf_ocr"
+              ? `${result.pageCount} PDF page${result.pageCount === 1 ? "" : "s"} processed locally`
+              : "Image processed locally",
+        });
+        setFileStatus(
+          confidenceWarning
+            ? `${file.name} was OCR-read locally, but confidence is low. Review and edit the extracted text before analyzing.`
+            : `${file.name} was OCR-read locally in the browser. Review the extracted text before analyzing.`,
+          confidenceWarning ? "warn" : "success",
+        );
+      } catch (error) {
+        setOcrState({
+          status: "error",
+          progress: 0,
+          label: "Text extraction failed",
+        });
+        setFileStatus(
+          error instanceof Error
+            ? `${error.message} You can paste the notice text manually to continue.`
+            : "OCR could not extract this notice. Paste the text manually to continue.",
+          "error",
+        );
+      }
       return;
     }
+
     if (!lowerName.endsWith(".txt") && file.type !== "text/plain") {
-      setFileMessage("Only .txt files are read locally in this prototype.");
+      setFileStatus("Upload .txt, PDF, PNG, JPG, or JPEG files for local browser review.", "error");
       return;
     }
-    const reader = new FileReader();
-    reader.onload = () => {
-      const text = String(reader.result ?? "");
-      setUploadText(text);
-      setUploadSourceKind("txt_upload");
-      setReviewNotice(
-        text.trim()
-          ? parseForReview(
-              [buildUploadedDocument(text, "txt_upload")],
-              preferences,
-              "txt_upload",
-            )
-          : undefined,
+
+    if (file.size > ocrFileLimits.maxTextFileBytes) {
+      setFileStatus(
+        "Text files are limited to 1 MB for this demo. Paste the relevant notice text manually to continue.",
+        "error",
       );
-      resetRunState();
-      setFileMessage(`${file.name} loaded locally in the browser.`);
-    };
-    reader.onerror = () => {
-      setFileMessage("The file could not be read. Paste the text manually to continue.");
-    };
-    reader.readAsText(file);
+      return;
+    }
+
+    try {
+      const text = await readTextFile(file);
+      applyUploadText(text, "txt_upload");
+      setFileStatus(`${file.name} loaded locally in the browser.`, "success");
+    } catch {
+      setFileStatus("The file could not be read. Paste the text manually to continue.", "error");
+    }
   }
 
   async function runWorkflow() {
@@ -393,6 +526,8 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
         updateUploadText,
         uploadSourceKind,
         fileMessage,
+        fileMessageTone,
+        ocrState,
         handleFile,
         reviewNotice,
         setReviewNotice,

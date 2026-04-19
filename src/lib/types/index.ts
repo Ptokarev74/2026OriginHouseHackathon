@@ -1,6 +1,11 @@
 export type UrgencyLevel = "routine" | "soon" | "urgent" | "overdue";
 export type ExtractionConfidence = "low" | "medium" | "high";
-export type DocumentSourceKind = "sample" | "pasted" | "txt_upload" | "pdf_unsupported";
+export type DocumentSourceKind =
+  | "sample"
+  | "pasted"
+  | "txt_upload"
+  | "pdf_ocr"
+  | "image_ocr";
 
 export type NoticeType =
   | "closure"

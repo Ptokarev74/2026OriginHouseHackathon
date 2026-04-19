@@ -17,14 +17,14 @@ import { useDashboard } from "@/components/dashboard/DashboardContext";
 import { Badge, Section, StatCard } from "@/components/dashboard/ui";
 import {
   caseStatusLabel,
-  dashboardCopy,
+  getDashboardCopy,
   noticeTypeLabel,
 } from "@/lib/i18n/dashboard";
 
 export default function RescuePathPage() {
   const router = useRouter();
   const { language } = useLanguage();
-  const copy = dashboardCopy[language];
+  const copy = getDashboardCopy(language);
   const {
     reviewNotice,
     result,

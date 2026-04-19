@@ -6,13 +6,13 @@ import { ArrowLeft, ArrowRight, CheckCircle, ServerCog } from "lucide-react";
 import { useLanguage } from "@/components/i18n/LanguageProvider";
 import { useDashboard } from "@/components/dashboard/DashboardContext";
 import { Badge, Section, classNames } from "@/components/dashboard/ui";
-import { caseStatusLabel, dashboardCopy } from "@/lib/i18n/dashboard";
+import { caseStatusLabel, getDashboardCopy } from "@/lib/i18n/dashboard";
 import { localizedWorkflowSteps, workflowSteps } from "@/lib/workflow/agent";
 
 export default function PacketPreparationPage() {
   const router = useRouter();
   const { language } = useLanguage();
-  const copy = dashboardCopy[language];
+  const copy = getDashboardCopy(language);
   const { result, status, activeStep, triggerNextStep } = useDashboard();
   const displayWorkflowSteps = localizedWorkflowSteps(language);
 

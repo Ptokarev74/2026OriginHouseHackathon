@@ -1,8 +1,6 @@
-import type { AppLanguage } from "@/lib/i18n/types";
+import { copyLanguage, type AppLanguage, type CopyLanguage } from "@/lib/i18n/types";
 
-export const landingContent: Record<
-  AppLanguage,
-  {
+type LandingContent = {
     header: {
       homeLabel: string;
       subtitle: string;
@@ -66,8 +64,9 @@ export const landingContent: Record<
       questionsTitle: string;
       questions: string[];
     };
-  }
-> = {
+};
+
+export const landingContent: Record<CopyLanguage, LandingContent> = {
   en: {
     header: {
       homeLabel: "Notice-to-Rescue home",
@@ -756,3 +755,7 @@ export const landingContent: Record<
     },
   },
 };
+
+export function getLandingContent(language: AppLanguage) {
+  return landingContent[copyLanguage(language)];
+}

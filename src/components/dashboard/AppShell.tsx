@@ -16,13 +16,13 @@ import { useLanguage } from "@/components/i18n/LanguageProvider";
 import { DashboardProvider, useDashboard } from "@/components/dashboard/DashboardContext";
 import { ReasoningTrace } from "@/components/dashboard/ReasoningTrace";
 import { classNames } from "@/components/dashboard/ui";
-import { dashboardCopy } from "@/lib/i18n/dashboard";
+import { getDashboardCopy } from "@/lib/i18n/dashboard";
 
 function Sidebar() {
   const pathname = usePathname();
   const { status } = useDashboard();
   const { language } = useLanguage();
-  const copy = dashboardCopy[language];
+  const copy = getDashboardCopy(language);
   const navSteps = [
     { name: copy.nav.intake, href: "/dashboard/intake", icon: FileText },
     { name: copy.nav.analysis, href: "/dashboard/coverage-analysis", icon: FileSearch },

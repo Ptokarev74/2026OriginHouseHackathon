@@ -15,7 +15,7 @@ import { useLanguage } from "@/components/i18n/LanguageProvider";
 import { useDashboard } from "@/components/dashboard/DashboardContext";
 import { Section, classNames } from "@/components/dashboard/ui";
 import type { FileMessageTone } from "@/components/dashboard/DashboardContext";
-import { dashboardCopy } from "@/lib/i18n/dashboard";
+import { getDashboardCopy } from "@/lib/i18n/dashboard";
 
 function fileMessageClasses(tone: FileMessageTone) {
   if (tone === "success") {
@@ -42,7 +42,7 @@ function fileMessageMarker(tone: FileMessageTone) {
 export default function IntakePage() {
   const router = useRouter();
   const { language } = useLanguage();
-  const copy = dashboardCopy[language];
+  const copy = getDashboardCopy(language);
   const {
     mode,
     setMode,

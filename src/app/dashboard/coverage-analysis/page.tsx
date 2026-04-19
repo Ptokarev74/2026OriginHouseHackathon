@@ -9,7 +9,7 @@ import { Badge, Section } from "@/components/dashboard/ui";
 import {
   blockerTypeLabel,
   caseStatusLabel,
-  dashboardCopy,
+  getDashboardCopy,
   noticeTypeLabel,
   sourceKindLabel,
   urgencyLabel,
@@ -57,7 +57,7 @@ function splitTextarea(value: string) {
 export default function NoticeAnalysisPage() {
   const router = useRouter();
   const { language } = useLanguage();
-  const copy = dashboardCopy[language];
+  const copy = getDashboardCopy(language);
   const {
     reviewNotice,
     setReviewNotice,

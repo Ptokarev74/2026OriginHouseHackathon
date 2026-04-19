@@ -3,7 +3,7 @@
 import { motion, useReducedMotion } from "motion/react";
 
 import { useLanguage } from "@/components/i18n/LanguageProvider";
-import { landingContent } from "./content";
+import { getLandingContent } from "./content";
 import {
   getContainerVariants,
   getRevealVariants,
@@ -14,7 +14,7 @@ import { type StartDemoHandler } from "./types";
 function ProductPreviewCard() {
   const reduceMotion = useReducedMotion();
   const { language } = useLanguage();
-  const content = landingContent[language].heroPreview;
+  const content = getLandingContent(language).heroPreview;
 
   return (
     <motion.aside
@@ -101,7 +101,7 @@ function ProductPreviewCard() {
 export function HeroSection({ onStartDemo }: { onStartDemo: StartDemoHandler }) {
   const reduceMotion = useReducedMotion();
   const { language } = useLanguage();
-  const content = landingContent[language];
+  const content = getLandingContent(language);
 
   return (
     <section

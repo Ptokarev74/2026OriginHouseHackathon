@@ -4,12 +4,12 @@ import React from "react";
 import { BrainCircuit } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useLanguage } from "@/components/i18n/LanguageProvider";
-import { dashboardCopy } from "@/lib/i18n/dashboard";
+import { getDashboardCopy } from "@/lib/i18n/dashboard";
 
 export function ReasoningTrace() {
   const pathname = usePathname();
   const { language } = useLanguage();
-  const copy = dashboardCopy[language].trace;
+  const copy = getDashboardCopy(language).trace;
   const traces =
     copy.items[pathname as keyof typeof copy.items] || [copy.fallback];
 

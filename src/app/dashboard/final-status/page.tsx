@@ -8,15 +8,15 @@ import { useDashboard } from "@/components/dashboard/DashboardContext";
 import { Badge, Section } from "@/components/dashboard/ui";
 import {
   caseStatusLabel,
-  dashboardCopy,
   finalStatusHeadline,
+  getDashboardCopy,
   noticeTypeLabel,
 } from "@/lib/i18n/dashboard";
 
 export default function FinalStatusPage() {
   const router = useRouter();
   const { language } = useLanguage();
-  const copy = dashboardCopy[language];
+  const copy = getDashboardCopy(language);
   const { result, status, triggerNextStep, setMode } = useDashboard();
 
   useEffect(() => {

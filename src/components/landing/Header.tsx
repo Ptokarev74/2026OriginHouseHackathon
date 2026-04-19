@@ -2,13 +2,13 @@
 
 import { LanguageSwitcher } from "@/components/i18n/LanguageSwitcher";
 import { useLanguage } from "@/components/i18n/LanguageProvider";
-import { landingContent } from "./content";
+import { getLandingContent } from "./content";
 import { MotionButton } from "./motion";
 import { type StartDemoHandler } from "./types";
 
 export function Header({ onStartDemo }: { onStartDemo: StartDemoHandler }) {
   const { language } = useLanguage();
-  const content = landingContent[language];
+  const content = getLandingContent(language);
 
   return (
     <header className="sticky top-0 z-30 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl">

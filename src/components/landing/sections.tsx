@@ -4,7 +4,7 @@ import { useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
 
 import { useLanguage } from "@/components/i18n/LanguageProvider";
-import { landingContent } from "./content";
+import { getLandingContent } from "./content";
 import {
   AnimatedGrid,
   getRevealVariants,
@@ -18,7 +18,7 @@ import { type StartDemoHandler } from "./types";
 
 export function TrustStrip() {
   const { language } = useLanguage();
-  const content = landingContent[language];
+  const content = getLandingContent(language);
 
   return (
     <section className="border-b border-slate-200 bg-white px-4 py-6 sm:px-6 lg:px-8">
@@ -42,7 +42,7 @@ export function TrustStrip() {
 
 export function WhyThisMattersSection() {
   const { language } = useLanguage();
-  const content = landingContent[language];
+  const content = getLandingContent(language);
 
   return (
     <SectionWrapper id="why-it-matters">
@@ -76,7 +76,7 @@ export function WhyThisMattersSection() {
 
 export function CommonSituationsSection() {
   const { language } = useLanguage();
-  const content = landingContent[language];
+  const content = getLandingContent(language);
 
   return (
     <SectionWrapper id="common-situations" tone="soft">
@@ -111,7 +111,7 @@ export function CommonSituationsSection() {
 
 export function WhatItReviewsSection() {
   const { language } = useLanguage();
-  const content = landingContent[language];
+  const content = getLandingContent(language);
 
   return (
     <SectionWrapper id="what-it-reviews">
@@ -153,7 +153,7 @@ export function WhatItReviewsSection() {
 export function ExampleOutputSection() {
   const reduceMotion = useReducedMotion();
   const { language } = useLanguage();
-  const content = landingContent[language];
+  const content = getLandingContent(language);
 
   return (
     <SectionWrapper id="what-you-leave-with" tone="soft">
@@ -228,7 +228,7 @@ export function ExampleOutputSection() {
 
 export function HowItWorksSection({ onStartDemo }: { onStartDemo: StartDemoHandler }) {
   const { language } = useLanguage();
-  const content = landingContent[language];
+  const content = getLandingContent(language);
 
   return (
     <SectionWrapper id="how-it-works">
@@ -274,7 +274,7 @@ export function HowItWorksSection({ onStartDemo }: { onStartDemo: StartDemoHandl
 export function FAQSection() {
   const reduceMotion = useReducedMotion();
   const { language } = useLanguage();
-  const content = landingContent[language];
+  const content = getLandingContent(language);
   const [openQuestion, setOpenQuestion] = useState(content.faqs[0]?.question ?? "");
 
   return (
@@ -335,7 +335,7 @@ export function FAQSection() {
 export function FinalCTASection({ onStartDemo }: { onStartDemo: StartDemoHandler }) {
   const reduceMotion = useReducedMotion();
   const { language } = useLanguage();
-  const content = landingContent[language];
+  const content = getLandingContent(language);
 
   return (
     <SectionWrapper>
@@ -392,7 +392,7 @@ export function FinalCTASection({ onStartDemo }: { onStartDemo: StartDemoHandler
 
 export function TrustSection() {
   const { language } = useLanguage();
-  const content = landingContent[language];
+  const content = getLandingContent(language);
 
   return (
     <SectionWrapper id="trust-limits" tone="deep">

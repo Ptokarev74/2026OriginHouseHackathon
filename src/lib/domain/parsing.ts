@@ -8,7 +8,7 @@ import type {
   SourceDocument,
   UrgencyLevel,
 } from "@/lib/types";
-import type { AppLanguage } from "@/lib/i18n/types";
+import { copyLanguage, type AppLanguage, type CopyLanguage } from "@/lib/i18n/types";
 
 function findValue(content: string, labels: string[]) {
   for (const label of labels) {
@@ -81,7 +81,7 @@ function inferRiskLanguage(content: string, language: AppLanguage) {
     ["deadline", /deadline|due date|respond by|submit by|before/i],
     ["conflict", /inconsistent|conflicting|cannot verify|does not match/i],
   ] as const;
-  const labels: Record<AppLanguage, Record<(typeof signals)[number][0], string>> = {
+  const labels: Record<CopyLanguage, Record<(typeof signals)[number][0], string>> = {
     en: {
       closure: "Closure language found",
       termination: "Termination language found",
@@ -104,7 +104,7 @@ function inferRiskLanguage(content: string, language: AppLanguage) {
 
   return signals
     .filter(([, expression]) => expression.test(content))
-    .map(([key]) => labels[language][key]);
+    .map(([key]) => labels[copyLanguage(language)][key]);
 }
 
 function inferMissingRequirements(content: string, language: AppLanguage) {
@@ -129,7 +129,7 @@ function inferMissingRequirements(content: string, language: AppLanguage) {
     ["renewal", /incomplete renewal|renewal form|redetermination form|signature missing/i],
     ["identity", /identity|photo id|identification|date of birth/i],
   ] as const;
-  const labels: Record<AppLanguage, Record<(typeof requirements)[number][0], string>> = {
+  const labels: Record<CopyLanguage, Record<(typeof requirements)[number][0], string>> = {
     en: {
       income: "proof of income",
       residency: "proof of residency",
@@ -146,7 +146,7 @@ function inferMissingRequirements(content: string, language: AppLanguage) {
 
   return requirements
     .filter(([, expression]) => expression.test(content))
-    .map(([key]) => labels[language][key]);
+    .map(([key]) => labels[copyLanguage(language)][key]);
 }
 
 function inferProvidedDocuments(documents: SourceDocument[], combined: string) {
@@ -193,7 +193,7 @@ function inferBlockerType(content: string, missingRequirements: string[], deadli
 }
 
 function blockerLabel(blockerType: BlockerType, language: AppLanguage) {
-  const labels: Record<AppLanguage, Record<BlockerType, string>> = {
+  const labels: Record<CopyLanguage, Record<BlockerType, string>> = {
     en: {
       missing_income_proof: "Missing proof of income",
       missing_residency_proof: "Missing proof of residency",
@@ -214,7 +214,7 @@ function blockerLabel(blockerType: BlockerType, language: AppLanguage) {
     },
   };
 
-  return labels[language][blockerType];
+  return labels[copyLanguage(language)][blockerType];
 }
 
 function inferUrgency(content: string, blockerType: BlockerType): UrgencyLevel {

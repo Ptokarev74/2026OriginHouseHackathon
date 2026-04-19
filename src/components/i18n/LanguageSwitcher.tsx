@@ -1,6 +1,6 @@
 "use client";
 
-import { appLanguages } from "@/lib/i18n/types";
+import { appLanguages, isAppLanguage } from "@/lib/i18n/types";
 import { useLanguage } from "./LanguageProvider";
 
 export function LanguageSwitcher({ compact = false }: { compact?: boolean }) {
@@ -12,7 +12,10 @@ export function LanguageSwitcher({ compact = false }: { compact?: boolean }) {
       <select
         aria-label="Language"
         className="peer absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0"
-        onChange={(event) => setLanguage(event.target.value === "es" ? "es" : "en")}
+        onChange={(event) => {
+          const nextLanguage = event.target.value;
+          setLanguage(isAppLanguage(nextLanguage) ? nextLanguage : "en");
+        }}
         value={language}
       >
         {appLanguages.map((item) => (

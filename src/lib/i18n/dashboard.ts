@@ -1,6 +1,4 @@
-import type {
-  AppLanguage,
-} from "@/lib/i18n/types";
+import { copyLanguage, type AppLanguage, type CopyLanguage } from "@/lib/i18n/types";
 import type {
   BlockerType,
   CaseStatus,
@@ -426,10 +424,14 @@ export const dashboardCopy = {
       restart: "Reiniciar flujo",
     },
   },
-} as const;
+} satisfies Record<CopyLanguage, unknown>;
+
+export function getDashboardCopy(language: AppLanguage) {
+  return dashboardCopy[copyLanguage(language)];
+}
 
 export function noticeTypeLabel(language: AppLanguage, value: NoticeType) {
-  const labels: Record<AppLanguage, Record<NoticeType, string>> = {
+  const labels: Record<CopyLanguage, Record<NoticeType, string>> = {
     en: {
       closure: "Closure",
       renewal: "Renewal",
@@ -448,11 +450,11 @@ export function noticeTypeLabel(language: AppLanguage, value: NoticeType) {
     },
   };
 
-  return labels[language][value];
+  return labels[copyLanguage(language)][value];
 }
 
 export function blockerTypeLabel(language: AppLanguage, value: BlockerType) {
-  const labels: Record<AppLanguage, Record<BlockerType, string>> = {
+  const labels: Record<CopyLanguage, Record<BlockerType, string>> = {
     en: {
       missing_income_proof: "Missing proof of income",
       missing_residency_proof: "Missing proof of residency",
@@ -473,11 +475,11 @@ export function blockerTypeLabel(language: AppLanguage, value: BlockerType) {
     },
   };
 
-  return labels[language][value];
+  return labels[copyLanguage(language)][value];
 }
 
 export function urgencyLabel(language: AppLanguage, value: UrgencyLevel) {
-  const labels: Record<AppLanguage, Record<UrgencyLevel, string>> = {
+  const labels: Record<CopyLanguage, Record<UrgencyLevel, string>> = {
     en: {
       routine: "Routine",
       soon: "Soon",
@@ -492,11 +494,11 @@ export function urgencyLabel(language: AppLanguage, value: UrgencyLevel) {
     },
   };
 
-  return labels[language][value];
+  return labels[copyLanguage(language)][value];
 }
 
 export function caseStatusLabel(language: AppLanguage, value: CaseStatus) {
-  const labels: Record<AppLanguage, Record<CaseStatus, string>> = {
+  const labels: Record<CopyLanguage, Record<CaseStatus, string>> = {
     en: {
       notice_received: "Notice received",
       blocker_identified: "Blocker identified",
@@ -517,11 +519,11 @@ export function caseStatusLabel(language: AppLanguage, value: CaseStatus) {
     },
   };
 
-  return labels[language][value];
+  return labels[copyLanguage(language)][value];
 }
 
 export function sourceKindLabel(language: AppLanguage, value: DocumentSourceKind) {
-  const labels: Record<AppLanguage, Record<DocumentSourceKind, string>> = {
+  const labels: Record<CopyLanguage, Record<DocumentSourceKind, string>> = {
     en: {
       sample: "sample",
       pasted: "pasted",
@@ -538,16 +540,18 @@ export function sourceKindLabel(language: AppLanguage, value: DocumentSourceKind
     },
   };
 
-  return labels[language][value];
+  return labels[copyLanguage(language)][value];
 }
 
 export function finalStatusHeadline(language: AppLanguage, value: CaseStatus) {
+  const labelLanguage = copyLanguage(language);
+
   if (value === "ready_to_submit") {
-    return language === "es" ? "Listo para enviar" : "Ready to submit";
+    return labelLanguage === "es" ? "Listo para enviar" : "Ready to submit";
   }
   if (value === "escalation_needed") {
-    return language === "es" ? "Escalamiento necesario" : "Escalation needed";
+    return labelLanguage === "es" ? "Escalamiento necesario" : "Escalation needed";
   }
 
-  return language === "es" ? "Esperando documentos" : "Awaiting documents";
+  return labelLanguage === "es" ? "Esperando documentos" : "Awaiting documents";
 }

@@ -47,6 +47,45 @@ export const workflowSteps = [
 export type WorkflowStepId = (typeof workflowSteps)[number]["id"];
 
 export function localizedWorkflowSteps(language: AppLanguage = "en") {
+  if (language === "so") {
+    return [
+      {
+        id: "read_notice",
+        label: "Akhri ogeysiiska",
+        description:
+          "Soo saar nooca ogeysiiska, waqtiga kama dambaysta ah, luqadda halista, macnaha barnaamijka, iyo degdegga.",
+      },
+      {
+        id: "identify_blocker",
+        label: "Aqoonso xannibaadda",
+        description: "Kala saar arrinta saxda ah ee caymiska halis gelinaysa.",
+      },
+      {
+        id: "determine_path",
+        label: "Go'aami waddada",
+        description:
+          "Dooro badbaadin dukumiinti, dhammaystir cusboonaysiin, badbaadin waqti, ama kor-u-qaadis.",
+      },
+      {
+        id: "prepare_packet",
+        label: "Diyaari xirmada",
+        description:
+          "Samee sharaxaad, liis hubin, xirmo gudbin, wareejin, iyo xasuusinno.",
+      },
+      {
+        id: "verify_readiness",
+        label: "Xaqiiji diyaar ahaanshaha",
+        description:
+          "Hubi in dukumiintiyada loo baahan yahay jiraan ama kor-u-qaadis loo baahan yahay.",
+      },
+      {
+        id: "outcome",
+        label: "Dhis xaaladda ugu dambeysa",
+        description: "Soo celi xaaladda dashboard-ka iyo tallaabooyinka xiga ee qofka.",
+      },
+    ] as const;
+  }
+
   if (language === "es") {
     return [
       {
@@ -112,14 +151,20 @@ export function runNoticeToRescueAgent(inputCase: AgentInputCase): AgentRunResul
   );
   const finalStatus = readinessCheck.status;
   const outcomeSummary = readinessCheck.shouldEscalate
-    ? language === "es"
+    ? language === "so"
+      ? `Kor-u-qaadis ayaa loo baahan yahay. ${blockerAssessment.label} wuxuu u baahan yahay dib-u-eegis bini'aadan ka hor inta qofku ku tiirsanaan waddo gudbin.`
+      : language === "es"
       ? `Escalamiento necesario. ${blockerAssessment.label} requiere revision humana antes de que la persona dependa de una ruta de envio.`
       : `Escalation needed. ${blockerAssessment.label} requires human review before the patient relies on a submission path.`
     : readinessCheck.readyToSubmit
-      ? language === "es"
+      ? language === "so"
+        ? `Waddada badbaadinta waa la aqoonsaday. ${blockerAssessment.label} waxaa lagu daboolay xirmada demo-ga. Xaalad: diyaar u ah gudbin.`
+        : language === "es"
         ? `Ruta de rescate identificada. ${blockerAssessment.label} esta cubierto en el paquete demo. Estado: listo para enviar.`
         : `Rescue path identified. ${blockerAssessment.label} is addressed in the demo packet. Status: ready to submit.`
-      : language === "es"
+      : language === "so"
+        ? `Waddada badbaadinta waa la aqoonsaday. Shay maqan: ${readinessCheck.missingDocuments.join(", ")}. Xaalad: sugaya dukumiintiyo.`
+        : language === "es"
         ? `Ruta de rescate identificada. Item faltante: ${readinessCheck.missingDocuments.join(", ")}. Estado: esperando documentos.`
         : `Rescue path identified. Missing item: ${readinessCheck.missingDocuments.join(", ")}. Status: awaiting documents.`;
 

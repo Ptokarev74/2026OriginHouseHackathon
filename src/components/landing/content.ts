@@ -407,6 +407,352 @@ export const landingContent: Record<CopyLanguage, LandingContent> = {
       ],
     },
   },
+  so: {
+    header: {
+      homeLabel: "Bogga hore ee Notice-to-Rescue",
+      subtitle: "Wakiilka ogeysiisyada Medicaid",
+      nav: [
+        { href: "#why-it-matters", label: "Sababta ay muhiim u tahay" },
+        { href: "#common-situations", label: "Xilliyada ogeysiiska" },
+        { href: "#what-it-reviews", label: "Waxa uu eego" },
+        { href: "#how-it-works", label: "Sida uu u shaqeeyo" },
+        { href: "#trust-limits", label: "Kalsooni iyo xad" },
+      ],
+      startDemo: "Bilow demo",
+    },
+    hero: {
+      title:
+        "Badbaadi caymiska Medicaid ka hor inta ogeysiis wareer leh uusan noqon hakad.",
+      copy:
+        "Notice-to-Rescue wuxuu akhriyaa xirmooyin ogeysiisyo Medicaid oo tusaale ah ama qoraal gudaha lagu dhajiyay, wuxuu helaa xannibaadda caymiska ee saxda ah, wuxuuna luqadda adag ee hay'adda u beddelaa waddo badbaadin oo cad.",
+      secondaryCopy:
+        "Wuxuu diyaariyaa waxyaabaha tallaabada xigta ee socodka demo-ga, isagoo go'aannada rasmiga ah ee u-qalmitaanka, gudbinta, iyo hagidda sharci uga tagaya hay'adda ku habboon ama qof dib-u-eegis u qalma.",
+      startDemo: "Bilow demo badbaadin",
+      seeExample: "Arag tusaale natiijo",
+    },
+    trustPills: [
+      "Hagid cad oo ku saabsan ogeysiisyada Medicaid",
+      "Hubinta xannibaadda iyo diyaar ahaanshaha",
+      "Demo frontend oo keliya",
+    ],
+    benefitStrip: [
+      "Akhri ogeysiisyada cusboonaysiinta iyo xiritaanka",
+      "Aqoonso xannibaadaha caymiska ee saxda ah",
+      "Diyaari xirmooyin iyo qoraallo kor-u-qaadis",
+    ],
+    reassuranceItems: [
+      {
+        title: "Dib-u-eegis ogeysiis oo luqad cad ah",
+        copy:
+          "Soo koobiddu waxay sharxaysaa waxa ogeysiiska Medicaid u muuqdo inuu codsanayo, ma aha go'aanno rasmi ah oo u-qalmitaan.",
+      },
+      {
+        title: "Socod diiradda saaraya xannibaadda",
+        copy:
+          "Demo-gu wuxuu diiradda saaraa shuruudda maqan, waqtiga kama dambaysta ah, iyo heerka diyaar ahaanshaha tallaabada xigta.",
+      },
+      {
+        title: "Kaliya mid la matalay",
+        copy:
+          "Demo-gan frontend ma la xiriiro hay'ado, ma gudbiyo waraaqo, ma kaydiyo dukumiintiyo dhab ah, mana maamulo PHI.",
+      },
+    ],
+    sectionHeadings: {
+      why: {
+        eyebrow: "Sababta ay muhiim u tahay",
+        title: "Faahfaahin yar oo ogeysiis ah waxay halis gelin kartaa caymiska.",
+        copy:
+          "Ogeysiisyada ficilka Medicaid badanaa waxay yimaadaan iyadoo waqtigu kooban yahay iyo qoraal adag. Notice-to-Rescue waxaa loogu talagalay daqiiqadda degdegga ah ee qof u baahan yahay inuu fahmo xannibaadda saxda ah iyo waxa xiga ee la sameeyo.",
+      },
+      common: {
+        eyebrow: "Xaaladaha caadiga ah",
+        title: "Waxaa loo dhisay xilliyada ogeysiiska ee dadka dhab ahaantii keenaan.",
+        copy:
+          "Nooca tijaabada wuxuu si fiican u shaqeeyaa marka ogeysiis Medicaid hortaada yaallo oo aad hayso su'aal caymis-haliseed oo gaar ah oo la xallinayo.",
+      },
+      reviews: {
+        eyebrow: "Waxa uu eego",
+        title: "Keen waraaqaha sharxaya halista.",
+        copy:
+          "Notice-to-Rescue wuxuu dukumiintiga ka raadiyaa macluumaad faa'iido leh wuxuuna u habeeyaa soo koobid kiis oo diiradda leh oo dib loo eegi karo.",
+        limit:
+          "Wuxuu kaa caawin karaa diyaarinta waddo jawaab. Ma xaqiijin karo u-qalmitaan, ma gudbin karo dukumiintiyo, ma la xiriiri karo hay'ad, mana bixin karo talo sharci.",
+      },
+      leaveWith: {
+        eyebrow: "Waxa aad la baxdo",
+        title: "Waddo ka cad laga bilaabo ogeysiiska ilaa tallaabada xigta.",
+        copy:
+          "Ujeeddadu ma aha in la beddelo jawaab rasmi ah. Waa in lagaa caawiyo fahamka xannibaadda, in la arko haddii kiisku dukumiinti ahaan diyaar yahay, iyo in la ogaado goorta kor-u-qaadis loo baahan karo.",
+      },
+      how: {
+        eyebrow: "Sida Notice-to-Rescue u shaqeeyo",
+        title: "Ogeysiis wareer leh ilaa tallaabo xigta oo diyaarsan.",
+        copy:
+          "Socod gaaban ayaa dib-u-eegista ku haya ogaanshaha xannibaadda, diyaar ahaanshaha, iyo tallaabada badbaadinta ee xigta.",
+      },
+      faq: {
+        eyebrow: "Su'aalo",
+        title: "Jawaabo cad oo ku saabsan waxa demo-gu sameyn karo iyo waxa uusan sameyn karin.",
+        copy:
+          "Notice-to-Rescue si taxaddar leh ayaa loo sameeyay: wuxuu waxtar u leeyahay diyaarinta, balse wuu xaddidan yahay marka jawaab rasmi ah ama qiimeyn bini'aadan loo baahan yahay.",
+      },
+      finalCta: {
+        eyebrow: "Tijaabi demo-ga",
+        title:
+          "Ku bilow hal ogeysiis Medicaid oo la bax waddo badbaadin oo ka cad.",
+        copy:
+          "Isticmaal Notice-to-Rescue si aad u aqoonsato xannibaadda, u hubiso in kiisku diyaar yahay, una diyaariso waxyaabo la matalay oo tallaabada xigta ah.",
+        startDemo: "Bilow demo badbaadin",
+        reviewLimits: "Eeg xadidaadaha demo-ga",
+        bullets: [
+          "Hagid keliya, ma aha go'aan rasmi ah oo Medicaid",
+          "Lama sameeyo xiriir hay'ad ama gudbin dukumiinti",
+          "Waxaa loogu talagalay diyaarinta ka hor dib-u-eegis bini'aadan ama dabagal",
+        ],
+      },
+      trust: {
+        eyebrow: "Kalsooni iyo xad",
+        title: "Hagid macluumaad ah, ma aha go'aan rasmi ah.",
+        copy:
+          "Notice-to-Rescue waa demo badbaadin ogeysiis Medicaid ah oo sharxaya luqadda halista isla markaana diyaariya waxyaabo dabagal oo la matalay. Ma go'aamiyo u-qalmitaan, ma gudbiyo waraaqo, ma la xiriiro hay'ado, ma bixiyo talo sharci, ma kaydiyo dukumiintiyo dhab ah, mana maamulo socod PHI oo dhab ah.",
+        limits: [
+          "Mar walba ka xaqiiji xaaladda, waqtiyada kama dambaysta ah, ikhtiyaarrada gudbinta, iyo xuquuqda racfaanka hay'adda ama qof dib-u-eegis u qalma.",
+          "Ha u isticmaalin demo-gan xaalado degdeg ah, go'aanno sharci, ama maareyn kiis oo dhab ah.",
+          "Ha gelin macluumaad caafimaad oo xasaasi ah ama dukumiintiyo dhab ah demo-gan frontend.",
+          "U isticmaal waxyaabaha la soo saaro sidii tilmaamo diyaarinta ah, ma aha jawaabo kama dambays ah ama gudbin hay'ad.",
+        ],
+      },
+    },
+    matterItems: [
+      {
+        title: "Caymisku si degdeg ah ayuu u xirmi karaa",
+        copy:
+          "Ogeysiis cusboonaysiin ama ficil loo baahan yahay wuxuu bixin karaa waqti gaaban ka hor inta faa'iidooyinka la joojin.",
+      },
+      {
+        title: "Xannibaaddu badanaa way qarsoon tahay",
+        copy:
+          "Waxa muhiimka ah ee maqan wuxuu noqon karaa caddeyn dakhli, dukumiinti deggenaansho, ama faahfaahin ku qarsoon qoraal adag.",
+      },
+      {
+        title: "Waqtiyada kama dambaysta ah waxay u baahan yihiin feejignaan",
+        copy:
+          "Farqiga u dhexeeya diyaar u ah gudbin iyo kor-u-qaadis loo baahan yahay wuxuu ku xirnaan karaa hal taariikh jawaab.",
+      },
+      {
+        title: "Diiwaanno is khilaafsan way dhici karaan",
+        copy:
+          "Ogeysiis iyo warqad xaalad kiis waxay tilmaami karaan xaqiiqooyin kala duwan, taasoo ka dhigaysa dib-u-eegis bini'aadan muhiim ka hor ficil.",
+      },
+      {
+        title: "Xirmooyinku waa inay dhammaystirnaadaan",
+        copy:
+          "Jawaabtu way xoog badan tahay marka ogeysiiska, caddeynta, faahfaahinta kiiska, iyo qorshaha xaqiijintu habaysan yihiin.",
+      },
+      {
+        title: "Kor-u-qaadistu waa inay caddahay",
+        copy:
+          "Notice-to-Rescue wuxuu kala saaraa ururinta dukumiintiyada caadiga ah iyo kiisaska u baahan hagaha ama u-doodaha.",
+      },
+    ],
+    commonSituations: [
+      {
+        title: "Digniin cusboonaysiin ayaa timid",
+        copy:
+          "Ogeysiisku wuxuu sheegayaa in Medicaid xirmi karto haddii aan la gudbin caddeyn dakhli ama caddeyn kale.",
+      },
+      {
+        title: "Ogeysiis ficil loo baahan yahay ma cadda",
+        copy:
+          "Warqaddu waxay sheegaysaa taariikh jawaab, laakiin dukumiintiga saxda ah ee loo baahan yahay si fudud ayaa loo seegi karaa.",
+      },
+      {
+        title: "Ogeysiis joojin ah wuu dhaafay",
+        copy:
+          "Caymisku wuxuu u muuqdaa inuu dhammaanayo, sidaas darteed kiisku wuxuu u baahan karaa racfaan ama dib-u-soo-celin.",
+      },
+      {
+        title: "Laba dukumiinti ayaa is khilaafsan",
+        copy:
+          "Warqadda xaaladda kiiska iyo ogeysiisku iskuma raacsana dakhli, deggenaansho, ama faahfaahinta u-qalmitaanka.",
+      },
+      {
+        title: "Qofku wuxuu haystaa waraaqo qayb ahaan ah",
+        copy:
+          "Qaar ka mid ah caddeynta way diyaar tahay, laakiin xirmadu weli waxay seegi kartaa shuruud ama tallaabo xaqiijin.",
+      },
+      {
+        title: "Qof ayaa dhajiyay qoraalka ogeysiiska gudaha",
+        copy:
+          "Nooca tijaabada wuxuu dib u eegi karaa xirmooyin tusaale ah ama qoraal browser-ka gudihiisa lagu dhajiyay.",
+      },
+    ],
+    reviewTypes: [
+      {
+        title: "Ogeysiisyada cusboonaysiinta Medicaid",
+        examples:
+          "Digniino cusboonaysiin, codsiyo caddeyn maqan, waqtiyo kama dambays ah",
+      },
+      {
+        title: "Warqadaha xiritaanka iyo joojinta",
+        examples:
+          "Taariikho dhammaadka caymiska, digniino xiritaan, luqad taariikh dhaaftay",
+      },
+      {
+        title: "Ogeysiisyada ficil loo baahan yahay",
+        examples:
+          "Caddeyn dakhli, caddeyn deggenaansho, liisaska dukumiintiyada la codsaday",
+      },
+      {
+        title: "Warqadaha xaaladda kiiska",
+        examples:
+          "Cusboonaysiinta hay'adda, faahfaahin is khilaafsan, calaamadaha u-qalmitaanka",
+      },
+      {
+        title: "Caddeymo taageero ah",
+        examples:
+          "Jeegag mushahar, warqado shaqo-bixiye, heshiisyo kirayn, biilasha adeegga, boosto rasmi ah",
+      },
+      {
+        title: "Luqadda halista iyo degdegga",
+        examples:
+          "Caymisku wuu xirmi karaa, kiisku wuu xirmayaa, jawaab la'aan, taariikh dhaaftay",
+      },
+      {
+        title: "Tilmaamaha gudbinta",
+        examples:
+          "Meesha dukumiintiyada loo diro, waxa lagu daro, xasuusin xaqiijin",
+      },
+      {
+        title: "Calaamadaha kor-u-qaadista",
+        examples:
+          "Soo saarid kalsooni hoose leh, diiwaanno is khilaafsan, kiisas waqtigoodii dhaafay",
+      },
+    ],
+    leaveWithItems: [
+      "Sharaxaad ogeysiis oo luqad cad ah",
+      "Xannibaadda saxda ah ee caymiska halis gelinaysa",
+      "Waqtiga kama dambaysta ah, degdegga, iyo heerka diyaar ahaanshaha",
+      "Liiska shuruudaha maqan",
+      "Xirmo gudbin ama kor-u-qaadis oo la matalay",
+      "Soo koobid la daabici karo oo dib-u-eegis dibadda ah",
+    ],
+    workflowSteps: [
+      {
+        step: "01",
+        title: "Dooro ama dhaji ogeysiis",
+        copy:
+          "Ku bilow xirmo ogeysiis Medicaid oo tusaale ah ama ku dhaji qoraal gudaha demo-ga browser-ka keliya.",
+      },
+      {
+        step: "02",
+        title: "Dib u eeg meelaha la soo saaray",
+        copy:
+          "Xaqiiji nooca ogeysiiska, waqtiga kama dambaysta ah, barnaamijka Medicaid, luqadda halista, iyo dukumiintiyada la codsaday.",
+      },
+      {
+        step: "03",
+        title: "Socodsii wakiilka badbaadinta",
+        copy:
+          "Socodka gudaha wuxuu aqoonsadaa xannibaadda saxda ah, degdegga, waddada badbaadinta, iyo diyaar ahaanshaha dukumiintiyada.",
+      },
+      {
+        step: "04",
+        title: "Diyaari tallaabada xigta",
+        copy:
+          "La bax waxyaabo xirmo oo la matalay, qoraallo kor-u-qaadis, iyo soo koobid daabacan oo dabagal ah.",
+      },
+    ],
+    faqs: [
+      {
+        question: "Tani ma go'aamisaa in qof Medicaid u qalmo?",
+        answer:
+          "Maya. Notice-to-Rescue wuxuu sharxayaa luqadda ogeysiiska wuxuuna diyaariyaa tallaabooyinka xiga, laakiin ma go'aamiyo u-qalmitaanka Medicaid, xaaladda caymiska, ama xuquuqda racfaanka.",
+      },
+      {
+        question: "Tani ma u gudbin kartaa dukumiintiyo hay'ad?",
+        answer:
+          "Maya. Demo-gu wuxuu diyaarin karaa waxyaabo xirmo oo la matalay, laakiin ma gudbiyo waraaqo, ma la xiriiro hay'ado, ma abuuro koontooyin, mana kaydiyo xaqiijino.",
+      },
+      {
+        question: "Dukumiintiyo noocee ah ayaan ku eegi karaa nooca tijaabada?",
+        answer:
+          "Demo-gu wuxuu ku habboon yahay ogeysiisyo cusboonaysiin Medicaid oo tusaale ah, ogeysiisyo xiritaan ama joojin, warqado ficil loo baahan yahay, warqado xaalad kiis, iyo qoraal ogeysiis gudaha lagu dhajiyay.",
+      },
+      {
+        question: "Ma kaydiyaa dukumiintiyo dhab ah ama PHI?",
+        answer:
+          "Maya. Mashruucu waa frontend oo keliya. Wuxuu isticmaalaa xog tusaale ah iyo qoraal browser-ka gudihiisa ah, mana aha socod PHI oo dhab ah.",
+      },
+      {
+        question: "Tani ma talo sharci ama talo hay'ad baa?",
+        answer:
+          "Maya. Waa hagid macluumaad oo loogu talagalay nooc tijaabo hackathon ah. Mar walba ka xaqiiji waqtiyada kama dambaysta ah, ikhtiyaarrada gudbinta, xuquuqda racfaanka, iyo xaaladda hay'adda ama qof dib-u-eegis u qalma.",
+      },
+      {
+        question: "Maxaa dhici kara marka kor-u-qaadis la calaamadiyo?",
+        answer:
+          "Isticmaal soo koobidda la soo saaray si aad ugu wargeliso hage, u-doodaha, shaqaale kiis, ama qof kale oo dib-u-eegis u qalma ka hor intaadan ku tiirsanaan xirmada.",
+      },
+    ],
+    heroPreview: {
+      ariaLabel: "Muuqaal tusaale ah oo dib-u-eegista Notice-to-Rescue",
+      badge: "Dib-u-eegis xirmo diyaar ah",
+      eyebrow: "Natiijo tusaale ah",
+      title: "Dib-u-eegista ogeysiiska cusboonaysiinta Medicaid",
+      copy: "Dib-u-eegis luqad cad ah oo ku saabsan xannibaad caddeyn dakhli maqan.",
+      packet: "Xirmo demo",
+      readyQuestionTitle: "Su'aal diyaar u ah in la weydiiyo",
+      readyQuestion:
+        "Caddeynta dakhliga ee saxda ah ee la aqbali karo waa maxay, sideense u xaqiijin karaa in xirmada la helay ka hor waqtiga jawaabta?",
+      checklistTitle: "Liiska tallaabooyinka xiga",
+      rows: [
+        {
+          label: "Soo koobidda ogeysiiska",
+          value:
+            "Ogeysiiska cusboonaysiintu wuxuu sheegayaa in Medicaid xirmi karto haddii aan la helin caddeyn dakhli.",
+        },
+        {
+          label: "Xannibaadda saxda ah",
+          value:
+            "Caddeynta dakhliga ee maqan ayaa ka hor istaagaysa kiiska inuu dukumiinti ahaan diyaar noqdo.",
+        },
+        {
+          label: "Waxa la xaqiijinayo",
+          value:
+            "Waqtiga kama dambaysta ah, caddeynta la aqbali karo, kanaalka gudbinta, iyo lambarka xaqiijinta.",
+        },
+        {
+          label: "Waddada badbaadinta",
+          value:
+            "Ururi caddeynta, diyaari xirmada, oo kor u qaad haddii waqtigu dhaafo.",
+        },
+      ],
+      checklist: [
+        "Ku dar ogeysiiska asalka ah",
+        "Ku xir dukumiintiyada qofka iyo kiiska",
+        "Kaydi caddeynta gudbinta ama xaqiijinta",
+      ],
+    },
+    exampleOutput: {
+      eyebrow: "Soo koobid tusaale ah",
+      title: "Qoraallo badbaadin oo diyaarsan",
+      copy:
+        "Ogeysiisku wuxuu u muuqdaa inuu digniin ka bixinayo in Medicaid xirmi karto haddii caddeynta dakhliga aan la gudbin ka hor taariikhda jawaabta ee ku qoran.",
+      flaggedTitle: "Faahfaahin la calaamadiyay",
+      flaggedCopy:
+        "Caddeynta dakhliga ee maqan waa xannibaadda. Xaqiiji dukumiintiyada la aqbali karo ka hor intaadan dirin xirmada.",
+      detailsTitle: "Faahfaahinta la xaqiijinayo",
+      detailsCopy:
+        "Waqtiga kama dambaysta ah, aqoonsiga kiiska, kanaalka gudbinta, caddeynta loo baahan yahay, iyo habka xaqiijinta.",
+      questionsTitle: "Su'aalaha la weydiinayo",
+      questions: [
+        "Dukumiintiyada caddeynta dakhliga ee ogeysiiskan buuxin kara waa kuwee?",
+        "Sidee loo gudbinayaa xirmada kiiskan Medicaid?",
+        "Lambarkee xaqiijin ama rasiid ah ayaa la kaydinayaa?",
+      ],
+    },
+  },
   es: {
     header: {
       homeLabel: "Inicio de Notice-to-Rescue",

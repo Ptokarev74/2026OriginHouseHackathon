@@ -26,7 +26,7 @@ import type {
   SampleCase,
   SourceDocument,
 } from "@/lib/types";
-import type { AppLanguage } from "@/lib/i18n/types";
+import { copyLanguage, type AppLanguage, type CopyLanguage } from "@/lib/i18n/types";
 
 export type WorkflowStatus = "idle" | "running" | "complete";
 export type IntakeMode = "sample" | "upload";
@@ -48,6 +48,30 @@ const defaultPreferences: CommunicationPreferences = {
   languagePreference: "English",
   contactMethod: "SMS",
 };
+
+function localized(language: AppLanguage, copy: Record<CopyLanguage, string>) {
+  return copy[copyLanguage(language)];
+}
+
+function localizeOcrProgress(progress: OcrProgress, language: AppLanguage): OcrProgress {
+  if (copyLanguage(language) !== "so") return progress;
+
+  const detail = progress.detail
+    ?.replace("Loading local English OCR data", "Raraya xogta OCR Ingiriisiga ee gudaha")
+    .replace("Starting local OCR worker", "Bilaabaya shaqaalaha OCR ee gudaha")
+    .replace("Reading document text", "Akhriyaya qoraalka dukumiintiga")
+    .replace("Preparing image in the browser", "Diyaarinaya sawirka browser-ka")
+    .replace("Running OCR on image", "OCR ku samaynaya sawirka")
+    .replace("Rendering PDF locally", "PDF gudaha lagu soo bandhigayo")
+    .replace(/Rendering page (\d+) of (\d+)/, "Soo bandhigaya bogga $1 ee $2")
+    .replace(/Reading page (\d+) of (\d+)/, "Akhriyaya bogga $1 ee $2");
+
+  return {
+    ...progress,
+    label: progress.label === "Extracting text..." ? "Qoraalka ayaa la soo saarayaa..." : progress.label,
+    detail,
+  };
+}
 
 function getStoredMode(): IntakeMode {
   if (typeof window === "undefined") return "sample";
@@ -75,17 +99,43 @@ function getStoredSessionText() {
     : "";
 }
 
-function buildUploadedDocument(text: string, sourceKind: DocumentSourceKind): SourceDocument {
-  const titles: Record<Exclude<DocumentSourceKind, "sample">, string> = {
-    pasted: "Pasted Medicaid notice text",
-    txt_upload: "Uploaded text file",
-    pdf_ocr: "OCR text from uploaded PDF",
-    image_ocr: "OCR text from uploaded image",
+function buildUploadedDocument(
+  text: string,
+  sourceKind: DocumentSourceKind,
+  language: AppLanguage,
+): SourceDocument {
+  const titles: Record<Exclude<DocumentSourceKind, "sample">, Record<CopyLanguage, string>> = {
+    pasted: {
+      en: "Pasted Medicaid notice text",
+      es: "Texto pegado del aviso de Medicaid",
+      so: "Qoraalka ogeysiiska Medicaid ee la dhajiyay",
+    },
+    txt_upload: {
+      en: "Uploaded text file",
+      es: "Archivo de texto subido",
+      so: "Fayl qoraal ah oo la raray",
+    },
+    pdf_ocr: {
+      en: "OCR text from uploaded PDF",
+      es: "Texto OCR del PDF subido",
+      so: "Qoraalka OCR ee PDF la raray",
+    },
+    image_ocr: {
+      en: "OCR text from uploaded image",
+      es: "Texto OCR de la imagen subida",
+      so: "Qoraalka OCR ee sawirka la raray",
+    },
   };
 
   return {
     id: "uploaded-local-medicaid-notice",
-    title: sourceKind === "sample" ? "Sample notice" : titles[sourceKind],
+    title: sourceKind === "sample"
+      ? localized(language, {
+          en: "Sample notice",
+          es: "Aviso de muestra",
+          so: "Ogeysiis tusaale ah",
+        })
+      : titles[sourceKind][copyLanguage(language)],
     documentType: "uploaded_text",
     content: text,
   };
@@ -160,7 +210,7 @@ const DashboardContext = createContext<DashboardContextType | undefined>(undefin
 
 export function DashboardProvider({ children }: { children: React.ReactNode }) {
   const { language } = useLanguage();
-  const sampleCases = useMemo(() => getSampleCases(), []);
+  const sampleCases = useMemo(() => getSampleCases(language), [language]);
 
   const [mode, setModeState] = useState<IntakeMode>(getStoredMode);
   const [selectedCaseId, setSelectedCaseId] = useState(sampleCases[0]?.id ?? "");
@@ -182,7 +232,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
 
     if (storedMode === "upload" && storedText.trim()) {
       return parseForReview(
-        [buildUploadedDocument(storedText, "pasted")],
+        [buildUploadedDocument(storedText, "pasted", language)],
         storedPreferences,
         "pasted",
         language,
@@ -218,10 +268,10 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
       return [selectedCase.notice, ...selectedCase.supportingDocuments];
     }
     if (uploadText.trim()) {
-      return [buildUploadedDocument(uploadText, uploadSourceKind)];
+      return [buildUploadedDocument(uploadText, uploadSourceKind, language)];
     }
     return [];
-  }, [mode, selectedCase, uploadSourceKind, uploadText]);
+  }, [language, mode, selectedCase, uploadSourceKind, uploadText]);
 
   useEffect(() => {
     window.localStorage.setItem(modeStorageKey, mode);
@@ -240,20 +290,32 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
   }, [uploadText]);
 
   useEffect(() => {
-    if (activeDocuments.length === 0) {
-      setReviewNotice(undefined);
-      return;
-    }
+    let cancelled = false;
 
-    const sourceKind = mode === "sample" ? "sample" : uploadSourceKind;
-    const nextPreferences = mode === "sample" ? selectedCase.preferences : preferences;
-    setReviewNotice(parseForReview(activeDocuments, nextPreferences, sourceKind, language));
-    setResult(undefined);
-    setStatus("idle");
-    setActiveStep(undefined);
-    setLiveGuidanceStatus("idle");
-    setLiveGuidance(undefined);
-    setLiveGuidanceError(undefined);
+    queueMicrotask(() => {
+      if (cancelled) return;
+
+      if (activeDocuments.length === 0) {
+        setReviewNotice(undefined);
+        return;
+      }
+
+      const sourceKind = mode === "sample" ? "sample" : uploadSourceKind;
+      const nextPreferences = mode === "sample" ? selectedCase.preferences : preferences;
+      setReviewNotice(parseForReview(activeDocuments, nextPreferences, sourceKind, language));
+      setResult(undefined);
+      setStatus("idle");
+      setActiveStep(undefined);
+      setLiveGuidanceStatus("idle");
+      setLiveGuidance(undefined);
+      setLiveGuidanceError(undefined);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+    // Reparse localized generated copy when the language changes without resetting user edits on every intake change.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [language]);
 
   function resetRunState() {
@@ -277,7 +339,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
   ) {
     const parsed = text.trim()
       ? parseForReview(
-          [buildUploadedDocument(text, sourceKind)],
+          [buildUploadedDocument(text, sourceKind, language)],
           preferences,
           sourceKind,
           language,
@@ -310,7 +372,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
 
     if (uploadText.trim()) {
       const parsed = parseForReview(
-        [buildUploadedDocument(uploadText, uploadSourceKind)],
+        [buildUploadedDocument(uploadText, uploadSourceKind, language)],
         preferences,
         uploadSourceKind,
         language,
@@ -357,7 +419,12 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
       if (limitMessage) {
         setUploadText("");
         setReviewNotice(undefined);
-        setFileStatus(limitMessage, "error");
+        setFileStatus(
+          copyLanguage(language) === "so"
+            ? "Faylasha way ka weyn yihiin xadka demo-gan gudaha ah. Isku day sawir ka yar ama gacanta ku dhaji qoraalka ogeysiiska."
+            : limitMessage,
+          "error",
+        );
         setOcrState({ status: "error", progress: 0 });
         return;
       }
@@ -368,21 +435,34 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
       setOcrState({
         status: "extracting",
         progress: 0.02,
-        label: "Extracting text...",
+        label: localized(language, {
+          en: "Extracting text...",
+          es: "Extrayendo texto...",
+          so: "Qoraalka ayaa la soo saarayaa...",
+        }),
         detail:
           ocrKind === "pdf"
-            ? "Rendering PDF pages locally"
-            : "Preparing image locally",
+            ? localized(language, {
+                en: "Rendering PDF pages locally",
+                es: "Renderizando paginas PDF localmente",
+                so: "Bogagga PDF gudaha ayaa la soo bandhigayaa",
+              })
+            : localized(language, {
+                en: "Preparing image locally",
+                es: "Preparando imagen localmente",
+                so: "Sawirka gudaha ayaa la diyaarinayaa",
+              }),
       });
 
       try {
         const { extractTextFromOcrFile } = await import("@/lib/ocr/browserOcr");
         const result = await extractTextFromOcrFile(file, (progress: OcrProgress) => {
+          const localizedProgress = localizeOcrProgress(progress, language);
           setOcrState({
             status: "extracting",
-            progress: progress.progress,
-            label: progress.label,
-            detail: progress.detail,
+            progress: localizedProgress.progress,
+            label: localizedProgress.label,
+            detail: localizedProgress.detail,
           });
         });
         const extractedText = result.text.trim();
@@ -392,13 +472,21 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
           setUploadSourceKind(result.sourceKind);
           setReviewNotice(undefined);
           setFileStatus(
-            "OCR finished, but it did not find enough notice text to parse. Paste the notice text manually to continue.",
+            localized(language, {
+              en: "OCR finished, but it did not find enough notice text to parse. Paste the notice text manually to continue.",
+              es: "El OCR termino, pero no encontro suficiente texto del aviso para analizar. Pega el texto del aviso manualmente para continuar.",
+              so: "OCR wuu dhammaaday, laakiin ma helin qoraal ogeysiis oo ku filan in la falanqeeyo. Gacanta ku dhaji qoraalka ogeysiiska si aad u sii waddo.",
+            }),
             "error",
           );
           setOcrState({
             status: "error",
             progress: 1,
-            label: "Text extraction incomplete",
+            label: localized(language, {
+              en: "Text extraction incomplete",
+              es: "Extraccion de texto incompleta",
+              so: "Soo saarista qoraalka ma dhammeystirna",
+            }),
           });
           return;
         }
@@ -410,26 +498,52 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
         setOcrState({
           status: "success",
           progress: 1,
-          label: "Text extracted",
+          label: localized(language, {
+            en: "Text extracted",
+            es: "Texto extraido",
+            so: "Qoraalka waa la soo saaray",
+          }),
           detail:
             result.sourceKind === "pdf_ocr"
-              ? `${result.pageCount} PDF page${result.pageCount === 1 ? "" : "s"} processed locally`
-              : "Image processed locally",
+              ? localized(language, {
+                  en: `${result.pageCount} PDF page${result.pageCount === 1 ? "" : "s"} processed locally`,
+                  es: `${result.pageCount} pagina${result.pageCount === 1 ? "" : "s"} PDF procesada${result.pageCount === 1 ? "" : "s"} localmente`,
+                  so: `${result.pageCount} bog PDF ah ayaa gudaha lagu farsameeyay`,
+                })
+              : localized(language, {
+                  en: "Image processed locally",
+                  es: "Imagen procesada localmente",
+                  so: "Sawirka gudaha ayaa lagu farsameeyay",
+                }),
         });
         setFileStatus(
           confidenceWarning
-            ? `${file.name} was OCR-read locally, but confidence is low. Review and edit the extracted text before analyzing.`
-            : `${file.name} was OCR-read locally in the browser. Review the extracted text before analyzing.`,
+            ? localized(language, {
+                en: `${file.name} was OCR-read locally, but confidence is low. Review and edit the extracted text before analyzing.`,
+                es: `${file.name} se leyo con OCR localmente, pero la confianza es baja. Revisa y edita el texto extraido antes de analizar.`,
+                so: `${file.name} waxaa OCR loogu akhriyay gudaha, laakiin kalsoonidu way hooseysaa. Dib u eeg oo tafatir qoraalka la soo saaray ka hor falanqaynta.`,
+              })
+            : localized(language, {
+                en: `${file.name} was OCR-read locally in the browser. Review the extracted text before analyzing.`,
+                es: `${file.name} se leyo con OCR localmente en el navegador. Revisa el texto extraido antes de analizar.`,
+                so: `${file.name} waxaa OCR loogu akhriyay gudaha browser-ka. Dib u eeg qoraalka la soo saaray ka hor falanqaynta.`,
+              }),
           confidenceWarning ? "warn" : "success",
         );
       } catch (error) {
         setOcrState({
           status: "error",
           progress: 0,
-          label: "Text extraction failed",
+          label: localized(language, {
+            en: "Text extraction failed",
+            es: "Fallo la extraccion de texto",
+            so: "Soo saarista qoraalka way fashilantay",
+          }),
         });
         setFileStatus(
-          error instanceof Error
+          copyLanguage(language) === "so"
+            ? "OCR kama soo saari karin ogeysiiskan. Gacanta ku dhaji qoraalka si aad u sii waddo."
+            : error instanceof Error
             ? `${error.message} You can paste the notice text manually to continue.`
             : "OCR could not extract this notice. Paste the text manually to continue.",
           "error",
@@ -439,13 +553,24 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
     }
 
     if (!lowerName.endsWith(".txt") && file.type !== "text/plain") {
-      setFileStatus("Upload .txt, PDF, PNG, JPG, or JPEG files for local browser review.", "error");
+      setFileStatus(
+        localized(language, {
+          en: "Upload .txt, PDF, PNG, JPG, or JPEG files for local browser review.",
+          es: "Sube archivos .txt, PDF, PNG, JPG o JPEG para revision local en el navegador.",
+          so: "Rar faylal .txt, PDF, PNG, JPG, ama JPEG ah si browser-ka gudihiisa loogu eego.",
+        }),
+        "error",
+      );
       return;
     }
 
     if (file.size > ocrFileLimits.maxTextFileBytes) {
       setFileStatus(
-        "Text files are limited to 1 MB for this demo. Paste the relevant notice text manually to continue.",
+        localized(language, {
+          en: "Text files are limited to 1 MB for this demo. Paste the relevant notice text manually to continue.",
+          es: "Los archivos de texto estan limitados a 1 MB para esta demo. Pega manualmente el texto relevante del aviso para continuar.",
+          so: "Faylasha qoraalka waxay demo-gan ku xaddidan yihiin 1 MB. Gacanta ku dhaji qoraalka ogeysiiska ee khuseeya si aad u sii waddo.",
+        }),
         "error",
       );
       return;
@@ -454,9 +579,23 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
     try {
       const text = await readTextFile(file);
       applyUploadText(text, "txt_upload");
-      setFileStatus(`${file.name} loaded locally in the browser.`, "success");
+      setFileStatus(
+        localized(language, {
+          en: `${file.name} loaded locally in the browser.`,
+          es: `${file.name} se cargo localmente en el navegador.`,
+          so: `${file.name} waxaa gudaha loogu raray browser-ka.`,
+        }),
+        "success",
+      );
     } catch {
-      setFileStatus("The file could not be read. Paste the text manually to continue.", "error");
+      setFileStatus(
+        localized(language, {
+          en: "The file could not be read. Paste the text manually to continue.",
+          es: "No se pudo leer el archivo. Pega el texto manualmente para continuar.",
+          so: "Faylka lama akhrin karin. Gacanta ku dhaji qoraalka si aad u sii waddo.",
+        }),
+        "error",
+      );
     }
   }
 
@@ -491,6 +630,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
 
   function buildGuidanceRequest(runResult: AgentRunResult): LiveGuidanceRequest {
     return {
+      language,
       blockerType: runResult.blockerAssessment.blockerType,
       blockerLabel: runResult.blockerAssessment.label,
       noticeType: runResult.parsedNotice.noticeType,
@@ -528,7 +668,11 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
         const message =
           typeof payload?.error?.message === "string"
             ? payload.error.message
-            : "Live guidance verification failed.";
+            : localized(language, {
+                en: "Live guidance verification failed.",
+                es: "Fallo la verificacion de guia en vivo.",
+                so: "Xaqiijinta hagidda tooska ah way fashilantay.",
+              });
         throw new Error(message);
       }
 
@@ -539,7 +683,11 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
       setLiveGuidanceError(
         error instanceof Error
           ? error.message
-          : "Live guidance verification failed.",
+          : localized(language, {
+              en: "Live guidance verification failed.",
+              es: "Fallo la verificacion de guia en vivo.",
+              so: "Xaqiijinta hagidda tooska ah way fashilantay.",
+            }),
       );
     }
   }

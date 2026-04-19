@@ -9,6 +9,8 @@ import { Badge, Section } from "@/components/dashboard/ui";
 import {
   blockerTypeLabel,
   caseStatusLabel,
+  contactMethodLabel,
+  extractionConfidenceLabel,
   getDashboardCopy,
   noticeTypeLabel,
   sourceKindLabel,
@@ -100,7 +102,8 @@ export default function NoticeAnalysisPage() {
             {copy.common.localExtractionComplete}
           </span>
           <Badge tone={reviewNotice.extractionConfidence === "high" ? "good" : "warn"}>
-            {reviewNotice.extractionConfidence.toUpperCase()} {copy.common.confidence}
+            {extractionConfidenceLabel(language, reviewNotice.extractionConfidence)}{" "}
+            {copy.common.confidence}
           </Badge>
           <Badge tone="blue">{sourceKindLabel(language, reviewNotice.sourceKind)}</Badge>
         </div>
@@ -260,9 +263,9 @@ export default function NoticeAnalysisPage() {
               }}
               value={reviewNotice.contactMethod ?? "SMS"}
             >
-              <option value="SMS">SMS</option>
-              <option value="Email">Email</option>
-              <option value="Phone">Phone</option>
+              <option value="SMS">{contactMethodLabel(language, "SMS")}</option>
+              <option value="Email">{contactMethodLabel(language, "Email")}</option>
+              <option value="Phone">{contactMethodLabel(language, "Phone")}</option>
             </select>
           </label>
         </div>

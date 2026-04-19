@@ -8,6 +8,7 @@ import {
   type TinyFishFetchResult,
   type TinyFishSearchResult,
 } from "@/lib/tinyfish/client";
+import { copyLanguage, isAppLanguage, type AppLanguage, type CopyLanguage } from "@/lib/i18n/types";
 import type {
   BlockerType,
   LiveGuidanceRequest,
@@ -34,6 +35,10 @@ function normalizeSpaces(value: string) {
 
 function textValue(value: unknown) {
   return typeof value === "string" ? normalizeSpaces(value).slice(0, 120) : undefined;
+}
+
+function localized(language: AppLanguage | undefined, copy: Record<CopyLanguage, string>) {
+  return copy[language ? copyLanguage(language) : "en"];
 }
 
 function stringArrayValue(value: unknown) {
@@ -72,6 +77,10 @@ function isUrgencyLevel(value: unknown): value is UrgencyLevel {
 export function parseLiveGuidanceRequest(value: unknown): LiveGuidanceRequest | undefined {
   if (!value || typeof value !== "object") return undefined;
   const record = value as Record<string, unknown>;
+  const language =
+    typeof record.language === "string" && isAppLanguage(record.language)
+      ? record.language
+      : undefined;
 
   if (
     !isBlockerType(record.blockerType) ||
@@ -85,6 +94,7 @@ export function parseLiveGuidanceRequest(value: unknown): LiveGuidanceRequest | 
   if (!blockerLabel) return undefined;
 
   return {
+    language,
     blockerType: record.blockerType,
     blockerLabel,
     noticeType: record.noticeType,
@@ -207,35 +217,97 @@ function buildSummary(input: LiveGuidanceRequest, sources: LiveGuidanceSource[])
   const blocker = input.blockerLabel.toLowerCase();
 
   if (sourceCount === 0) {
-    return "TinyFish did not return a public source that could be used for live guidance verification.";
+    return localized(input.language, {
+      en: "TinyFish did not return a public source that could be used for live guidance verification.",
+      es: "TinyFish no devolvio una fuente publica que pudiera usarse para verificar la guia en vivo.",
+      so: "TinyFish ma soo celin il dadweyne oo loo adeegsan karo xaqiijinta hagidda tooska ah.",
+    });
   }
 
-  const sourceCopy = `${sourceCount} public source${sourceCount === 1 ? "" : "s"}`;
-  const officialCopy = officialCount > 0 ? `, including ${officialCount} government source${officialCount === 1 ? "" : "s"}` : "";
+  const sourceCopy = localized(input.language, {
+    en: `${sourceCount} public source${sourceCount === 1 ? "" : "s"}`,
+    es: `${sourceCount} fuente${sourceCount === 1 ? "" : "s"} publica${sourceCount === 1 ? "" : "s"}`,
+    so: sourceCount === 1 ? "1 il dadweyne" : `${sourceCount} ilo dadweyne`,
+  });
+  const officialCopy = officialCount > 0
+    ? localized(input.language, {
+        en: `, including ${officialCount} government source${officialCount === 1 ? "" : "s"}`,
+        es: `, incluida${officialCount === 1 ? "" : "s"} ${officialCount} fuente${officialCount === 1 ? "" : "s"} gubernamental${officialCount === 1 ? "" : "es"}`,
+        so: officialCount === 1
+          ? ", oo ay ku jirto 1 il dowladeed"
+          : `, oo ay ku jiraan ${officialCount} ilo dowladeed`,
+      })
+    : "";
   const actionCopy = input.shouldEscalate
-    ? "Use the sources to confirm appeal, fair hearing, reinstatement, or manual-review channels before relying on a self-service packet."
-    : `Use the sources to confirm the requested ${blocker} documentation, accepted submission channel, and confirmation requirements.`;
+    ? localized(input.language, {
+        en: "Use the sources to confirm appeal, fair hearing, reinstatement, or manual-review channels before relying on a self-service packet.",
+        es: "Usa las fuentes para confirmar canales de apelacion, audiencia imparcial, restablecimiento o revision manual antes de depender de un paquete de autoservicio.",
+        so: "Isticmaal ilaha si aad u xaqiijiso racfaan, dhageysi cadaalad ah, soo celin, ama kanaalada dib-u-eegista gacanta ka hor intaadan ku tiirsanaan xirmo is-adeegsi ah.",
+      })
+    : localized(input.language, {
+        en: `Use the sources to confirm the requested ${blocker} documentation, accepted submission channel, and confirmation requirements.`,
+        es: `Usa las fuentes para confirmar la documentacion solicitada de ${blocker}, el canal de envio aceptado y los requisitos de confirmacion.`,
+        so: `Isticmaal ilaha si aad u xaqiijiso dukumiintiyada ${blocker} ee la codsaday, kanaalka gudbinta la aqbalo, iyo shuruudaha xaqiijinta.`,
+      });
 
-  return `TinyFish verified live public-web guidance against ${sourceCopy}${officialCopy}. ${actionCopy}`;
+  return localized(input.language, {
+    en: `TinyFish verified live public-web guidance against ${sourceCopy}${officialCopy}. ${actionCopy}`,
+    es: `TinyFish verifico la guia publica en vivo contra ${sourceCopy}${officialCopy}. ${actionCopy}`,
+    so: `TinyFish wuxuu xaqiijiyay hagidda webka dadweynaha iyadoo lala barbar dhigay ${sourceCopy}${officialCopy}. ${actionCopy}`,
+  });
 }
 
-function userSafeError(error: unknown) {
+function userSafeError(error: unknown, language?: AppLanguage) {
   if (error instanceof TinyFishConfigError) {
-    return "TINYFISH_API_KEY is not configured on the server.";
+    return localized(language, {
+      en: "TINYFISH_API_KEY is not configured on the server.",
+      es: "TINYFISH_API_KEY no esta configurada en el servidor.",
+      so: "TINYFISH_API_KEY laguma dejin server-ka.",
+    });
   }
 
   if (error instanceof TinyFishHttpError) {
-    if (error.status === 401) return "TinyFish authentication failed. Check the server API key.";
-    if (error.status === 402 || error.status === 403) return "TinyFish access is not enabled or credits are unavailable.";
-    if (error.status === 429) return "TinyFish rate limit was reached. Try again shortly.";
-    return `TinyFish returned HTTP ${error.status}.`;
+    if (error.status === 401) {
+      return localized(language, {
+        en: "TinyFish authentication failed. Check the server API key.",
+        es: "Fallo la autenticacion de TinyFish. Revisa la clave API del servidor.",
+        so: "Xaqiijinta TinyFish way fashilantay. Hubi furaha API ee server-ka.",
+      });
+    }
+    if (error.status === 402 || error.status === 403) {
+      return localized(language, {
+        en: "TinyFish access is not enabled or credits are unavailable.",
+        es: "El acceso a TinyFish no esta habilitado o no hay creditos disponibles.",
+        so: "Gelitaanka TinyFish lama hawlgelin ama dhibco lama heli karo.",
+      });
+    }
+    if (error.status === 429) {
+      return localized(language, {
+        en: "TinyFish rate limit was reached. Try again shortly.",
+        es: "Se alcanzo el limite de TinyFish. Intenta de nuevo pronto.",
+        so: "Xadka isticmaalka TinyFish ayaa la gaaray. Mar dhow isku day mar kale.",
+      });
+    }
+    return localized(language, {
+      en: `TinyFish returned HTTP ${error.status}.`,
+      es: `TinyFish devolvio HTTP ${error.status}.`,
+      so: `TinyFish wuxuu soo celiyay HTTP ${error.status}.`,
+    });
   }
 
   if (error instanceof DOMException && error.name === "TimeoutError") {
-    return "TinyFish request timed out.";
+    return localized(language, {
+      en: "TinyFish request timed out.",
+      es: "La solicitud a TinyFish agoto el tiempo.",
+      so: "Codsiga TinyFish waqtigiisii wuu dhammaaday.",
+    });
   }
 
-  return "TinyFish guidance verification failed.";
+  return localized(language, {
+    en: "TinyFish guidance verification failed.",
+    es: "Fallo la verificacion de guia de TinyFish.",
+    so: "Xaqiijinta hagidda TinyFish way fashilantay.",
+  });
 }
 
 export async function verifyLiveGuidance(input: LiveGuidanceRequest): Promise<LiveGuidanceResult> {
@@ -251,7 +323,11 @@ export async function verifyLiveGuidance(input: LiveGuidanceRequest): Promise<Li
       generatedAt: new Date().toISOString(),
       summary: buildSummary(input, []),
       caveats: [
-        "No source was strong enough to cite; confirm directly with the notice, state Medicaid agency, or a qualified reviewer.",
+        localized(input.language, {
+          en: "No source was strong enough to cite; confirm directly with the notice, state Medicaid agency, or a qualified reviewer.",
+          es: "Ninguna fuente fue suficientemente fuerte para citar; confirma directamente con el aviso, la agencia estatal de Medicaid o una persona revisora calificada.",
+          so: "Ma jirin il ku filan oo la xigan karo; si toos ah ugu xaqiiji ogeysiiska, hay'adda Medicaid ee gobolka, ama qof dib-u-eegis aqoon leh.",
+        }),
       ],
       sources: [],
       errors,
@@ -265,7 +341,7 @@ export async function verifyLiveGuidance(input: LiveGuidanceRequest): Promise<Li
     sources = mergeFetchedContent(selectedResults, fetchResponse.results, input);
     errors.push(...fetchResponse.errors.map((item) => `${hostFromUrl(item.url) || item.url}: ${item.error}`));
   } catch (error) {
-    errors.push(userSafeError(error));
+    errors.push(userSafeError(error, input.language));
   }
 
   return {
@@ -274,14 +350,22 @@ export async function verifyLiveGuidance(input: LiveGuidanceRequest): Promise<Li
     generatedAt: new Date().toISOString(),
     summary: buildSummary(input, sources),
     caveats: [
-      "This live check is informational and does not determine eligibility, provide legal advice, or replace official case-specific instructions.",
-      "Always verify deadlines, appeal rights, and submission channels with the notice or the appropriate Medicaid agency.",
+      localized(input.language, {
+        en: "This live check is informational and does not determine eligibility, provide legal advice, or replace official case-specific instructions.",
+        es: "Esta revision en vivo es informativa y no determina elegibilidad, no da asesoria legal ni reemplaza instrucciones oficiales del caso.",
+        so: "Hubintan tooska ah waa macluumaad keliya mana go'aamiso u-qalmitaan, ma bixiso talo sharci, mana beddesho tilmaamaha rasmiga ah ee kiiska.",
+      }),
+      localized(input.language, {
+        en: "Always verify deadlines, appeal rights, and submission channels with the notice or the appropriate Medicaid agency.",
+        es: "Siempre verifica fechas limite, derechos de apelacion y canales de envio con el aviso o la agencia de Medicaid correspondiente.",
+        so: "Had iyo jeer ku xaqiiji waqtiyada kama dambaysta ah, xuquuqda racfaanka, iyo kanaalada gudbinta ogeysiiska ama hay'adda Medicaid ee ku habboon.",
+      }),
     ],
     sources,
     errors,
   };
 }
 
-export function guidanceErrorMessage(error: unknown) {
-  return userSafeError(error);
+export function guidanceErrorMessage(error: unknown, language?: AppLanguage) {
+  return userSafeError(error, language);
 }

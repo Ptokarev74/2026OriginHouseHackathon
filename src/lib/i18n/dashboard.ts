@@ -2,6 +2,8 @@ import { copyLanguage, type AppLanguage, type CopyLanguage } from "@/lib/i18n/ty
 import type {
   BlockerType,
   CaseStatus,
+  ActionStatus,
+  ExtractionConfidence,
   DocumentSourceKind,
   NoticeType,
   UrgencyLevel,
@@ -214,6 +216,214 @@ export const dashboardCopy = {
         "This prototype interprets notices and prepares next steps. It does not determine Medicaid eligibility, provide legal advice, submit paperwork, contact agencies, store real sensitive information, or replace a human reviewer.",
       back: "Back to Packet",
       restart: "Restart Workflow",
+    },
+  },
+  so: {
+    languageLabel: "Luqad",
+    appSubtitle: "Wakiilka ogeysiisyada Medicaid",
+    nav: {
+      intake: "Gelinta",
+      analysis: "Falanqaynta Ogeysiiska",
+      rescuePath: "Waddada Badbaadinta",
+      packetPrep: "Diyaarinta Xirmada",
+      finalStatus: "Xaaladda Ugu Dambeysa",
+      primary: "Socodka ugu weyn",
+    },
+    shell: {
+      agentStatus: "Xaaladda wakiilka",
+    },
+    status: {
+      idle: "SUGAN",
+      running: "SOCDA",
+      complete: "DHAMMAADAY",
+      done: "La dhammeeyay",
+    },
+    trace: {
+      title: "Raadka Fikirka Wakiilka",
+      awaiting: "Sugaya tallaabada xigta ee socodka...",
+      fallback: "Sugaya macnaha ogeysiiska firfircoon...",
+      items: {
+        "/dashboard/intake": [
+          "Waxaa la raray xirmooyin ogeysiisyo tusaale ah iyo qaabka gelinta hadda.",
+          "Waxaa la diyaarinayaa qoraalka ogeysiiska, warqadda xaaladda kiiska, iyo dukumiintiyada caddeynta si loo falanqeeyo.",
+          "Dukumiinti dhab ah kama baxo browser-ka noocan tijaabada ah.",
+        ],
+        "/dashboard/coverage-analysis": [
+          "Waxaa la soo saaraya nooca ogeysiiska, taariikhda jawaabta, macnaha barnaamijka, iyo luqadda halista.",
+          "Waxaa la kala saaraya calaamadaha caddeynta maqan iyo waqtiga kama dambaysta ah.",
+          "Waxaa la diyaarinayaa meelaha la tafatiri karo ka hor inta wakiilka badbaadinta la socodsiin.",
+        ],
+        "/dashboard/rescue-path": [
+          "Waxaa la akhrinayaa qoraalka ogeysiiska ee aan qaabaysnayn iyadoo la adeegsanayo xeerar gudaha ah.",
+          "Waxaa la aqoonsanayaa xannibaadda saxda ah ee caymiska halis gelinaysa.",
+          "Waxaa la dooranayaa badbaadin dukumiinti, badbaadin waqti, dhammaystir cusboonaysiin, ama kor-u-qaadis.",
+        ],
+        "/dashboard/action-execution": [
+          "Waxaa la sameynayaa sharaxaad luqad cad ah iyo liiska shuruudaha maqan.",
+          "Waxaa la dhisayaa xirmooyin gudbin iyo kor-u-qaadis oo la matalay.",
+          "Waxaa la hubinayaa in dukumiintiyadu jiraan ama dib-u-eegis bini'aadan loo baahan yahay.",
+        ],
+        "/dashboard/final-status": [
+          "Waxaa la isku keenayaa waxyaabaha badbaadinta oo laga dhigayo soo koobid kiis oo la daabici karo.",
+          "Waxaa la dejinayaa xaaladda ugu dambeysa iyadoo laga eegayo diyaar ahaanshaha iyo kor-u-qaadista.",
+          "Waxaa la diyaarinayaa tallaabooyinka xiga ee qofka ee ka baxsan noocan tijaabada ah.",
+        ],
+      },
+    },
+    common: {
+      running: "Socda",
+      confidence: "KALSOONI",
+      source: "ISHA",
+      sources: "ILO",
+      verify: "Xaqiiji",
+      verifyManually: "Gacanta ku xaqiiji",
+      informationalOnly: "Macluumaad keliya",
+      noMissingRequirement: "Ma jiro shuruud maqan oo gaar ah oo ku hartay xirmada demo-ga.",
+      localExtractionComplete: "Soo saarista gudaha waa dhammaatay.",
+      extractionPlaceholder: "SSSS-BB-MM",
+      familyProgramPlaceholder: "Medicaid qoys, Medicaid dadka waaweyn...",
+    },
+    intake: {
+      title: "Gelinta",
+      copy:
+        "Dooro xirmo ogeysiis Medicaid oo tusaale ah ama ku dhaji qoraal ogeysiis gudaha ah si aad u bilowdo socodka badbaadinta.",
+      sampleTitle: "Xirmooyinka Tusaalaha",
+      sampleCopy:
+        "Isticmaal ogeysiisyo tusaale ah si aad u aragto ogaanshaha xannibaadda, hubinta diyaar ahaanshaha, iyo diyaarinta xirmada.",
+      uploadTitle: "Dhaji ama Rar",
+      uploadCopy:
+        "Dhaji qoraal, rar .txt, ama OCR ku samee PDF/sawir la iskaan gareeyay gudaha browser-ka.",
+      demoEyebrow: "Waddada Demo",
+      choosePacket: "Dooro xirmo ogeysiis",
+      sampleCase: "Kiis tusaale ah",
+      packetContents: "Waxa xirmadu ka kooban tahay",
+      notice: "Ogeysiis",
+      supportingDocs: "Dukumiintiyo taageero",
+      preference: "Doorbid",
+      yourNotice: "Ogeysiiskaaga",
+      provideText: "Bixi qoraalka ogeysiiska Medicaid",
+      pasteText: "Dhaji qoraal",
+      pasteTextCopy: "Qor ama si toos ah ugu dhaji qoraalka ogeysiiska sanduuqa dib-u-eegista.",
+      uploadTxt: "Rar .txt",
+      uploadTxtCopy: "Akhri ogeysiisyo qoraal caadi ah oo gudaha ah kal-fadhigan.",
+      ocr: "OCR PDF/sawir",
+      ocrCopy: "Ku muuji PDFs ama sawirro browser-ka oo ka soo saar qoraal la tafatiri karo.",
+      extractedText: "Qoraalka ogeysiiska ee la soo saaray",
+      noticeContent: "Nuxurka ogeysiiska",
+      ocrReady:
+        "Qoraalka OCR wuu diyaar u yahay dib-u-eegis. Sax wax kasta oo khalad u muuqda ka hor falanqaynta.",
+      uploadFile: "Rar faylka ogeysiiska",
+      txtFiles: "Faylasha .txt waxay u rarmaan qoraal ahaan",
+      pdfFiles: "PDF-yada waxaa OCR lagu sameeyaa ilaa 5 bog",
+      imageFiles: "Sawirrada PNG/JPG OCR gudaha ah",
+      ocrLocal:
+        "OCR wuxuu ka shaqeeyaa tab-kan browser-ka wuxuuna soo saaraa qoraal la tafatiri karo oo loogu talagalay socodka demo-ga.",
+      analyzeNotice: "Falanqee Ogeysiiska",
+      placeholder:
+        "Halkan ku dhaji qoraalka xiritaanka, cusboonaysiinta, joojinta, ficilka loo baahan yahay, ama warqadda xaaladda kiis ee Medicaid.",
+    },
+    analysis: {
+      title: "Falanqaynta Ogeysiiska",
+      copy:
+        "Dib u eeg meelaha laga soo saaray ogeysiiska Medicaid ka hor intaadan socodsiin wakiilka badbaadinta.",
+      eyebrow: "Dib-u-eegis Xog",
+      sectionTitle: "Xaqiiji faahfaahinta ogeysiiska ee la soo saaray",
+      noticeType: "Nooca ogeysiiska",
+      deadline: "Waqtiga kama dambaysta ah ama taariikhda jawaabta",
+      patientName: "Magaca qofka",
+      medicaidProgram: "Barnaamijka Medicaid",
+      exactBlocker: "Xannibaadda saxda ah",
+      blockerLabel: "Summadda xannibaadda",
+      urgency: "Degdeg",
+      caseStatus: "Xaaladda kiiska",
+      languagePreference: "Doorbidka luqadda",
+      communicationPreference: "Doorbidka xiriirka",
+      missingRequirements: "Shuruudaha maqan",
+      riskLanguage: "Luqadda halista",
+      back: "Ku laabo Gelinta",
+      run: "Socodsii Wakiilka Badbaadinta",
+    },
+    rescue: {
+      title: "Waddada Badbaadinta",
+      copy:
+        "Socodsii wakiilka badbaadinta gudaha si loo aqoonsado xannibaadda, degdegga, xaaladda, iyo tallaabada xigta.",
+      readyTitle: "Diyaar u ah socodsiinta wakiilka badbaadinta",
+      readyCopy:
+        "Wakiilku wuxuu akhrin doonaa ogeysiiska, kala saari doonaa xannibaadda saxda ah, dooran doonaa waddada badbaadinta, wuxuuna hubin doonaa diyaar ahaanshaha.",
+      run: "Socodsii Wakiilka Badbaadinta",
+      readingTitle: "Akhrinaya xirmada ogeysiiska...",
+      readingCopy:
+        "Soo saaraya waqtiga kama dambaysta ah, luqadda halista, shuruudaha maqan, iyo diyaar ahaanshaha.",
+      statNoticeType: "Nooca ogeysiiska",
+      statNoticeHelper: "Laga soo saaray xirmada ogeysiiska",
+      statDeadline: "Waqti kama dambays ah",
+      statDeadlineHelper: "Taariikh jawaab oo la xaqiijinayo",
+      statBlocker: "Xannibaad",
+      statBlockerHelper: "Xannibaadda saxda ah ee caymiska halis gelinaysa",
+      statStatus: "Xaalad",
+      statStatusHelper: "Xaaladda diyaar ahaanshaha wakiilka",
+      decisionEyebrow: "Go'aan",
+      decisionTitle: "Waddada badbaadinta waa la aqoonsaday",
+      nextAction: "Tallaabada xigta",
+      guidanceEyebrow: "Hagid Toos ah",
+      guidanceTitle: "Xaqiijin web dadweyne",
+      guidanceCopy:
+        "TinyFish wuxuu eegaa ilo dadweyne oo cusub oo la xiriira xannibaadda, shuruudaha maqan, waqtiyada kama dambaysta ah, iyo waddada kor-u-qaadista.",
+      refreshGuidance: "Cusboonaysii Hagidda",
+      verifyGuidance: "Xaqiiji Hagidda",
+      searching:
+        "Raadinaya hagid web dadweyne oo ka soo saaraya ilaha ugu xooggan...",
+      guidanceFailed: "Xaqiijinta hagidda tooska ah way fashilantay.",
+      verificationSummary: "Soo koobidda xaqiijinta",
+      query: "Weydiin",
+      findingsEyebrow: "Caddeynta Xannibaadda",
+      findingsTitle: "Natiijooyin",
+      planEyebrow: "Qorshe",
+      planTitle: "Tallaabooyinka badbaadinta ee loo baahan yahay",
+      recheck: "Dib u hubi Meelaha",
+      preparePacket: "Diyaari Xirmada",
+    },
+    packet: {
+      title: "Diyaarinta Xirmada",
+      copy: "Dib u eeg waxyaabaha la matalay ee uu soo saaray wakiilka badbaadinta.",
+      timelineEyebrow: "Isku-duwid",
+      timelineTitle: "Jadwalka wakiilka",
+      readinessEyebrow: "Diyaar ahaansho",
+      readinessTitle: "Hubinta diyaar ahaanshaha xirmada",
+      awaiting: "Sugaya natiijooyinka wakiilka badbaadinta...",
+      missingRequirements: "Shuruudaha maqan",
+      artifactsEyebrow: "Waxyaabo",
+      artifactsTitle: "Xirmada badbaadinta ee la soo saaray",
+      back: "Ku laabo Waddada Badbaadinta",
+      next: "Arag Xaaladda Ugu Dambeysa",
+      ready: "DIYAAR",
+      escalate: "KOR U QAAD",
+      missingItems: "WAXYAABO MAQAN",
+    },
+    final: {
+      title: "Xaaladda Ugu Dambeysa",
+      copy: "Dib u eeg natiijada badbaadinta oo daabac soo koobid kiis oo dabagal ah.",
+      print: "Daabac Soo Koobid",
+      outcome: "Natiijada badbaadinta",
+      nextSteps: "Tallaabooyinka xiga",
+      referenceEyebrow: "Fayl Tixraac",
+      referenceTitle: "Soo koobid badbaadin oo la daabici karo",
+      summaryTitle: "Soo koobidda badbaadinta ogeysiiska Medicaid",
+      summaryCopy:
+        "Soo koobiddan waxaa laga sameeyay qoraal tusaale ah ama qoraal gudaha lagu dhajiyay oo loogu talagalay demo frontend.",
+      noticeSummary: "Soo koobidda ogeysiiska",
+      reviewedDetails: "Faahfaahinta la eegay",
+      notice: "Ogeysiis:",
+      deadline: "Waqti kama dambays ah:",
+      blocker: "Xannibaad:",
+      status: "Xaalad:",
+      riskLanguage: "Luqadda halista",
+      missingItems: "Waxyaabo maqan",
+      readinessChecks: "Hubinta diyaar ahaanshaha",
+      disclaimer:
+        "Noocan tijaabada ah wuxuu fasiraa ogeysiisyada wuxuuna diyaariyaa tallaabooyinka xiga. Ma go'aamiyo u-qalmitaanka Medicaid, ma bixiyo talo sharci, ma gudbiyo waraaqo, ma la xiriiro hay'ado, ma kaydiyo macluumaad xasaasi ah oo dhab ah, mana beddelo dib-u-eegis bini'aadan.",
+      back: "Ku laabo Xirmada",
+      restart: "Dib u bilow Socodka",
     },
   },
   es: {
@@ -448,6 +658,14 @@ export function noticeTypeLabel(language: AppLanguage, value: NoticeType) {
       case_status: "Estado del caso",
       uploaded_text: "Texto subido",
     },
+    so: {
+      closure: "Xiritaan",
+      renewal: "Cusboonaysiin",
+      termination: "Joojin",
+      action_required: "Ficil loo baahan yahay",
+      case_status: "Xaaladda kiiska",
+      uploaded_text: "Qoraal la raray",
+    },
   };
 
   return labels[copyLanguage(language)][value];
@@ -473,6 +691,15 @@ export function blockerTypeLabel(language: AppLanguage, value: BlockerType) {
       upcoming_deadline: "Fecha limite proxima",
       manual_review: "Revision manual",
     },
+    so: {
+      missing_income_proof: "Caddeyn dakhli ayaa maqan",
+      missing_residency_proof: "Caddeyn deggenaansho ayaa maqan",
+      incomplete_renewal: "Cusboonaysiin aan dhammeystirnayn",
+      eligibility_inconsistency: "Iswaafaq la'aan u-qalmitaan",
+      missed_deadline: "Waqti kama dambays ah oo dhaafay",
+      upcoming_deadline: "Waqti kama dambays ah oo soo socda",
+      manual_review: "Dib-u-eegis gacanta ah",
+    },
   };
 
   return labels[copyLanguage(language)][value];
@@ -491,6 +718,12 @@ export function urgencyLabel(language: AppLanguage, value: UrgencyLevel) {
       soon: "Pronto",
       urgent: "Urgente",
       overdue: "Vencido",
+    },
+    so: {
+      routine: "Caadi",
+      soon: "Dhowaan",
+      urgent: "Degdeg",
+      overdue: "Waqtigiisii dhaafay",
     },
   };
 
@@ -517,6 +750,15 @@ export function caseStatusLabel(language: AppLanguage, value: CaseStatus) {
       rescue_in_progress: "Rescate en progreso",
       resolved: "Resuelto",
     },
+    so: {
+      notice_received: "Ogeysiis la helay",
+      blocker_identified: "Xannibaad la aqoonsaday",
+      awaiting_documents: "Sugaya dukumiintiyo",
+      ready_to_submit: "Diyaar u ah gudbin",
+      escalation_needed: "Kor-u-qaadis ayaa loo baahan yahay",
+      rescue_in_progress: "Badbaadin ayaa socota",
+      resolved: "La xalliyay",
+    },
   };
 
   return labels[copyLanguage(language)][value];
@@ -538,6 +780,85 @@ export function sourceKindLabel(language: AppLanguage, value: DocumentSourceKind
       pdf_ocr: "ocr pdf",
       image_ocr: "ocr imagen",
     },
+    so: {
+      sample: "tusaale",
+      pasted: "la dhajiyay",
+      txt_upload: "txt la raray",
+      pdf_ocr: "ocr pdf",
+      image_ocr: "ocr sawir",
+    },
+  };
+
+  return labels[copyLanguage(language)][value];
+}
+
+export function extractionConfidenceLabel(
+  language: AppLanguage,
+  value: ExtractionConfidence,
+) {
+  const labels: Record<CopyLanguage, Record<ExtractionConfidence, string>> = {
+    en: {
+      low: "LOW",
+      medium: "MEDIUM",
+      high: "HIGH",
+    },
+    es: {
+      low: "BAJA",
+      medium: "MEDIA",
+      high: "ALTA",
+    },
+    so: {
+      low: "HOOSE",
+      medium: "DHEXDHEXAAD",
+      high: "SARE",
+    },
+  };
+
+  return labels[copyLanguage(language)][value];
+}
+
+export function actionStatusLabel(language: AppLanguage, value: ActionStatus) {
+  const labels: Record<CopyLanguage, Record<ActionStatus, string>> = {
+    en: {
+      generated: "GENERATED",
+      simulated: "SIMULATED",
+      blocked: "BLOCKED",
+    },
+    es: {
+      generated: "GENERADO",
+      simulated: "SIMULADO",
+      blocked: "BLOQUEADO",
+    },
+    so: {
+      generated: "LA SOO SAARAY",
+      simulated: "LA MATALAY",
+      blocked: "XANNIBAN",
+    },
+  };
+
+  return labels[copyLanguage(language)][value];
+}
+
+export function contactMethodLabel(
+  language: AppLanguage,
+  value: "SMS" | "Email" | "Phone",
+) {
+  const labels: Record<CopyLanguage, Record<"SMS" | "Email" | "Phone", string>> = {
+    en: {
+      SMS: "SMS",
+      Email: "Email",
+      Phone: "Phone",
+    },
+    es: {
+      SMS: "SMS",
+      Email: "Correo electronico",
+      Phone: "Telefono",
+    },
+    so: {
+      SMS: "SMS",
+      Email: "Iimayl",
+      Phone: "Telefoon",
+    },
   };
 
   return labels[copyLanguage(language)][value];
@@ -547,11 +868,14 @@ export function finalStatusHeadline(language: AppLanguage, value: CaseStatus) {
   const labelLanguage = copyLanguage(language);
 
   if (value === "ready_to_submit") {
+    if (labelLanguage === "so") return "Diyaar u ah gudbin";
     return labelLanguage === "es" ? "Listo para enviar" : "Ready to submit";
   }
   if (value === "escalation_needed") {
+    if (labelLanguage === "so") return "Kor-u-qaadis ayaa loo baahan yahay";
     return labelLanguage === "es" ? "Escalamiento necesario" : "Escalation needed";
   }
 
+  if (labelLanguage === "so") return "Sugaya dukumiintiyo";
   return labelLanguage === "es" ? "Esperando documentos" : "Awaiting documents";
 }
